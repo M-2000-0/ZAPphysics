@@ -2,101 +2,110 @@
 
 **Physics & Chemistry simulation engine written entirely in Zap**
 
-ZapPhysics is a complete physics and chemistry simulation engine built from scratch in the [Zap programming language](https://github.com/M-2000-0/ZAP). It provides 2D particle dynamics, collision detection, molecular modeling, chemical reactions, thermodynamics, and tensor-based N-body calculations -- all in ~670 lines of pure Zap code.
-
-## Features
-
-### Physics Engine
-- **Vec2** -- 2D vector math (add, subtract, scale, dot product, normalize, distance)
-- **Particle** -- Mass, position, velocity, force accumulation, kinetic energy, momentum
-- **World** -- Gravity, boundary enforcement, collision resolution, energy tracking, center of mass
-- **Force Laws** -- Gravitational attraction, Hooke's law springs, viscous drag
-- **Collisions** -- Elastic collision detection & impulse response with overlap resolution
-
-### Chemistry Engine
-- **Element** -- Atomic properties (symbol, mass, electronegativity, valence)
-- **Molecule** -- Molecular mass, bond energy, polarity calculations
-- **Reaction** -- Reactants, products, enthalpy, exothermic/endothermic classification, energy-per-gram
-- **Thermodynamics** -- Ideal gas law, Gibbs free energy, entropy, Kelvin conversion
-- **Pre-built molecules** -- H2O, CO2, CH4, NaCl, H2, O2, Fe2O3, H2SO4
-
-### Tensor Physics
-- Pairwise distance matrices for N-body systems
-- Gravitational force matrices using Zap's native tensor operations
+ZapPhysics is a modular physics and chemistry simulation engine built from scratch in the [Zap programming language](https://github.com/M-2000-0/ZAP). It provides 2D particle dynamics, collision detection, molecular modeling, chemical reactions, thermodynamics, and tensor-based N-body calculations.
 
 ## Quick Start
 
 ### Prerequisites
 - [Zap language](https://github.com/M-2000-0/ZAP) installed and on your PATH
 
-### Run the demos
+### Run all demos
 ```bash
-zap run zapphysics.zap
+zap run main.zap
 ```
 
-This runs all 5 demo simulations:
-1. **Orbital Mechanics** -- Star with 3 orbiting bodies under mutual gravity
-2. **Spring-Mass System** -- Damped harmonic oscillations with Hooke's law
-3. **Elastic Collisions** -- 3-body collision dynamics with impulse resolution
-4. **Chemistry Lab** -- Molecule properties, reactions, and thermodynamics
-5. **Tensor N-body** -- Force matrix computation using Zap tensors
-
-## Architecture
-
-```
-zapphysics.zap
-├── Vec2              (lines 8-41)    2D vector operations
-├── Particle          (lines 45-72)   Point-mass with force accumulation
-├── Force Laws        (lines 76-94)   Gravity, springs, drag
-├── Collision         (lines 98-118)  Elastic impulse-based collision
-├── World             (lines 122-203) Simulation container & integrator
-├── Element           (lines 211-265) Periodic table data
-├── Molecule          (lines 310-341) Molecular modeling
-├── Reaction          (lines 370-419) Chemical reaction tracking
-├── Thermodynamics    (lines 423-437) Gas laws & Gibbs energy
-└── Demos             (lines 444-646) 5 runnable simulations
+### Run a single demo
+```bash
+zap run examples/orbital.zap
+zap run examples/springs.zap
+zap run examples/collisions.zap
+zap run examples/chemistry.zap
+zap run examples/tensor.zap
 ```
 
-## Example Output
+## Project Structure
 
 ```
-==============================================
-  ZapPhysics v1.0
-  Physics & Chemistry engine for Zap
-==============================================
-
-=== PHYSICS DEMO: Orbital Mechanics ===
-
--- Initial state --
-=== PHYSICS WORLD SUMMARY ===
-  time: 0s
-  steps: 0
-  particles: 4
-  total energy: 0.5831
-  center of mass: (-0.01, -0.02)
-  Star@(0,0) vel=(0,0) KE=0
-  Planet-A@(10,0) vel=(0,8) KE=32
-  Planet-B@(0,-12) vel=(6,0) KE=36
-  Comet@(-15,5) vel=(3,2) KE=0.65
+ZAPphysics/
+├── main.zap                       # Entry point — runs all demos
+│
+├── lib/                           # Physics & chemistry modules
+│   ├── vec2.zap                   # 2D vector operations
+│   ├── particle.zap               # Point-mass with force accumulation
+│   ├── forces.zap                 # Gravity, springs, drag, Coulomb
+│   ├── collision.zap              # Elastic impulse-based collision
+│   ├── world.zap                  # Simulation container & integrator
+│   ├── elements.zap               # Periodic table (14 elements)
+│   ├── molecule.zap               # Molecular modeling & bond energy
+│   ├── reaction.zap               # Chemical reaction tracking
+│   └── thermo.zap                 # Thermodynamics & gas laws
+│
+├── examples/                      # Demo simulations
+│   ├── orbital.zap                # Orbital mechanics (gravity N-body)
+│   ├── springs.zap                # Spring-mass system (Hooke's law)
+│   ├── collisions.zap             # Elastic collisions
+│   ├── chemistry.zap              # Molecules, reactions, thermodynamics
+│   └── tensor.zap                 # Tensor N-body force matrix
+│
+└── zapphysics.zap                 # Monolithic version (all-in-one)
 ```
 
-## Physics Formulas Implemented
+## Modules
+
+### Physics Engine
+
+| Module | Classes/Functions | Description |
+|--------|------------------|-------------|
+| `lib/vec2.zap` | `Vec2`, `vec2()` | 2D vector math: add, sub, scale, dot, normalize, dist, rotate, lerp |
+| `lib/particle.zap` | `Particle` | Point-mass with position, velocity, force, kinetic energy, momentum |
+| `lib/forces.zap` | `gravity()`, `spring_force()`, `drag_force()`, `coulomb_force()`, `damping_force()` | Force law implementations |
+| `lib/collision.zap` | `collide()`, `check_collision()` | Elastic impulse-based collision detection & resolution |
+| `lib/world.zap` | `World` | Simulation container: global forces, collision resolution, bounds, energy, center of mass, momentum |
+
+### Chemistry Engine
+
+| Module | Classes/Functions | Description |
+|--------|------------------|-------------|
+| `lib/elements.zap` | `Element`, H, He, C, N, O, F, Na, Cl, Fe, S, Ca, Mg, P, K | Periodic table with atomic properties |
+| `lib/molecule.zap` | `Molecule`, `bond()`, 9 constructors | Molecular mass, bond energy, polarity, formula |
+| `lib/reaction.zap` | `Reaction` | Reactants, products, enthalpy, exothermic/endothermic, mass conservation |
+| `lib/thermo.zap` | 10 functions | Ideal gas law, Gibbs energy, Boltzmann, Arrhenius, heat capacity, RMS speed |
+
+### New Functions (v2.0)
+
+- `Vec2.rotate(theta)` — rotate vector by angle
+- `Vec2.lerp(other, t)` — linear interpolation
+- `Vec2.angle()` — angle from x-axis
+- `Particle.speed()` — scalar speed
+- `coulomb_force()` — electromagnetic force
+- `damping_force()` — velocity-proportional drag
+- `Molecule.formula()` — auto-generate chemical formula
+- `Reaction.mass_conserved()` — check mass conservation
+- `arrhenius_rate()` — reaction rate kinetics
+- `root_mean_square_speed()` — molecular speed from temperature
+- `boltzmann_probability()` — energy-probability distribution
+- `heat_capacity_cv()`, `heat_capacity_cp()` — specific heat
+
+## Physics Formulas
 
 | Formula | Implementation |
 |---------|---------------|
 | Newton's gravity | `F = G * m1 * m2 / r^2` |
+| Coulomb's law | `F = k * q1 * q2 / r^2` |
 | Hooke's law | `F = -k * (x - x0)` |
 | Kinetic energy | `KE = 0.5 * m * v^2` |
 | Ideal gas law | `PV = nRT` |
 | Gibbs free energy | `G = H - TdS` |
-| Impulse-based collision | `j = -(1+e) * v_n / (1/m1 + 1/m2)` |
+| Impulse collision | `j = -(1+e) * v_n / (1/m1 + 1/m2)` |
 | Center of mass | `R = sum(mi * ri) / sum(mi)` |
+| Arrhenius rate | `k = A * exp(-Ea / RT)` |
+| RMS speed | `v = sqrt(3RT / M)` |
 
 ## Built With Zap
 
 This engine demonstrates Zap's capabilities for scientific computing:
 - **Classes** with methods for clean OOP design
-- **List comprehensions** and `for` loops for iteration
+- **`import`** for modular multi-file projects
 - **Tensors** for matrix-based calculations
 - **`say()`/`str()`** with custom `repr()` methods for readable output
 - **Higher-order force functions** for composable physics
