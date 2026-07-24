@@ -5,12 +5,19 @@
 fn gravity(a, b, g_const)
   let diff = b.pos.sub(a.pos)
   let dlen = diff.length()
-  let dist = dlen
-  if dlen < 0.1:
-    dist = 0.1
-  let strength = g_const * a.mass * b.mass / (dist * dist)
+  let softening = 5.0
+  let dist_sq = dlen * dlen + softening * softening
+  let dist = sqrt(dist_sq)
+  let strength = g_const * a.mass * b.mass / dist_sq
   let dir = diff.normalize()
   dir.scale(strength)
+
+fn gravity_potential(a, b, g_const)
+  let diff = b.pos.sub(a.pos)
+  let dlen = diff.length()
+  let softening = 5.0
+  let dist = sqrt(dlen * dlen + softening * softening)
+  -g_const * a.mass * b.mass / dist
 
 fn spring_force(a, b, k, rest_len)
   let diff = b.pos.sub(a.pos)

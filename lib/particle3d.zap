@@ -1,0 +1,36 @@
+# ═══════════════════════════════════════════════════════════════════
+# ZapPhysics — Particle3D: 3D point-mass simulation
+# ═══════════════════════════════════════════════════════════════════
+
+class Particle3D:
+  fn init(self, name, mass, pos, vel)
+    self.name = name
+    self.mass = mass
+    self.pos = pos
+    self.vel = vel
+    self.force = Vec3(0, 0, 0)
+    self.charge = 0
+    self.radius = mass * 0.5
+
+  fn apply_force(self, f)
+    self.force = self.force.add(f)
+
+  fn kinetic_energy(self)
+    0.5 * self.mass * self.vel.dot(self.vel)
+
+  fn momentum(self)
+    self.vel.scale(self.mass)
+
+  fn speed(self)
+    self.vel.length()
+
+  fn step(self, dt)
+    let ax = self.force.x / self.mass
+    let ay = self.force.y / self.mass
+    let az = self.force.z / self.mass
+    self.vel = self.vel.add(Vec3(ax, ay, az).scale(dt))
+    self.pos = self.pos.add(self.vel.scale(dt))
+    self.force = Vec3(0, 0, 0)
+
+  fn repr(self)
+    self.name + "@(" + str(round(self.pos.x, 2)) + "," + str(round(self.pos.y, 2)) + "," + str(round(self.pos.z, 2)) + ")"

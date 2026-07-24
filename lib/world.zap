@@ -2,6 +2,8 @@
 # ZapPhysics — World: Simulation container and integrator
 # ═══════════════════════════════════════════════════════════════════
 
+import "forces.zap"
+
 class World:
   fn init(self)
     self.particles = []
@@ -14,6 +16,7 @@ class World:
     self.by_max = 20
     self.time = 0
     self.steps = 0
+    self.g_const = 50
 
   fn add(self, p)
     self.particles = self.particles + [p]
@@ -23,6 +26,13 @@ class World:
       if self.has_gravity:
         let weight = Vec2(self.gx, self.gy).scale(p.mass)
         p.apply_force(weight)
+
+  fn apply_gravity_forces(self)
+    for i in range(len(self.particles)):
+      for j in range(i + 1, len(self.particles)):
+        let f = gravity(self.particles[i], self.particles[j], self.g_const)
+        self.particles[i].apply_force(f)
+        self.particles[j].apply_force(f.scale(-1))
 
   fn resolve_collisions(self)
     for i in range(len(self.particles)):
@@ -46,6 +56,7 @@ class World:
 
   fn step(self, dt)
     self.apply_global_forces()
+    self.apply_gravity_forces()
     for p in self.particles:
       p.step(dt)
     self.resolve_collisions()
@@ -57,7 +68,24 @@ class World:
     let ke = 0
     for p in self.particles:
       ke = ke + p.kinetic_energy()
+    let pe = 0
+    for i in range(len(self.particles)):
+      for j in range(i + 1, len(self.particles)):
+        pe = pe + gravity_potential(self.particles[i], self.particles[j], self.g_const)
+    ke + pe
+
+  fn total_kinetic_energy(self)
+    let ke = 0
+    for p in self.particles:
+      ke = ke + p.kinetic_energy()
     ke
+
+  fn total_potential_energy(self)
+    let pe = 0
+    for i in range(len(self.particles)):
+      for j in range(i + 1, len(self.particles)):
+        pe = pe + gravity_potential(self.particles[i], self.particles[j], self.g_const)
+    pe
 
   fn center_of_mass(self)
     let mx = 0
@@ -85,7 +113,9 @@ class World:
     say("  time: " + str(round(self.time, 3)) + "s")
     say("  steps: " + str(self.steps))
     say("  particles: " + str(len(self.particles)))
-    say("  total energy: " + str(round(self.total_energy(), 4)))
+    say("  total energy (KE+PE): " + str(round(self.total_energy(), 4)))
+    say("  kinetic energy: " + str(round(self.total_kinetic_energy(), 4)))
+    say("  potential energy: " + str(round(self.total_potential_energy(), 4)))
     let com = self.center_of_mass()
     say("  center of mass: (" + str(round(com.x, 2)) + ", " + str(round(com.y, 2)) + ")")
     let mom = self.momentum_sum()

@@ -1,47 +1,70 @@
 # ═══════════════════════════════════════════════════════════════════
-# ZapPhysics v2.0
-# Physics & Chemistry simulation engine for Zap
+# ZapPhysics v4.0
+# Complete Physics & Chemistry + Engineering simulation engine for Zap
 #
 # Run all demos:  zap run main.zap
-# Run one demo:   zap run examples/orbital.zap
 # ═══════════════════════════════════════════════════════════════════
 
+# ── Core Physics ──
 import "lib/vec2.zap"
+import "lib/vec3.zap"
 import "lib/particle.zap"
+import "lib/particle3d.zap"
 import "lib/forces.zap"
 import "lib/collision.zap"
 import "lib/world.zap"
+
+# ── Advanced Physics ──
+import "lib/em.zap"
+import "lib/sph.zap"
+import "lib/rigid.zap"
+
+# ── Engineering ──
+import "lib/structural.zap"
+import "lib/rocket.zap"
+import "lib/aero.zap"
+import "lib/orbital_mechanics.zap"
+import "lib/flight.zap"
+
+# ── Game Physics ──
+import "lib/game.zap"
+
+# ── Chemistry ──
 import "lib/elements.zap"
 import "lib/molecule.zap"
 import "lib/reaction.zap"
 import "lib/thermo.zap"
+import "lib/kinetics.zap"
 
-say("==============================================")
-say("  ZapPhysics v2.0")
-say("  Physics & Chemistry engine for Zap")
-say("==============================================")
-say("")
-say("  Modules loaded:")
-say("    lib/vec2.zap       - 2D vector math")
-say("    lib/particle.zap   - Point-mass particles")
-say("    lib/forces.zap     - Gravity, springs, drag, Coulomb")
-say("    lib/collision.zap  - Elastic collision resolution")
-say("    lib/world.zap      - Simulation world & integrator")
-say("    lib/elements.zap   - Periodic table (14 elements)")
-say("    lib/molecule.zap   - Molecular modeling & bonds")
-say("    lib/reaction.zap   - Chemical reaction tracking")
-say("    lib/thermo.zap     - Thermodynamics & gas laws")
-say("")
-say("  Running all demos...")
+# ── Visualization & Art ──
+import "lib/visual.zap"
+import "lib/visualize.zap"
+import "lib/art.zap"
 
+# ── Demos ──
 import "examples/orbital.zap"
 import "examples/springs.zap"
 import "examples/collisions.zap"
 import "examples/chemistry.zap"
 import "examples/tensor.zap"
+import "examples/demo3d.zap"
+import "examples/demo_em.zap"
+import "examples/demo_fluid.zap"
+import "examples/demo_rigid.zap"
+import "examples/demo_structural.zap"
+import "examples/demo_game.zap"
+import "examples/demo_art.zap"
+import "examples/demo_visual.zap"
+import "examples/demo_elements.zap"
+import "examples/demo_kinetics.zap"
+import "examples/demo_rocket.zap"
+import "examples/demo_flight.zap"
+import "examples/demo_orbital_mechanics.zap"
 
 say("")
 say("==============================================")
-say("  All demos complete!")
-say("  Zap powers physics + chemistry simulations.")
+say("  All 18 demos complete!")
+say("  ZapPhysics v4.0: physics + chemistry + engineering.")
+say("  New: Rocket design, Aerodynamics, Orbital mechanics,")
+say("       Flight dynamics, HTML+Canvas visualization.")
 say("==============================================")

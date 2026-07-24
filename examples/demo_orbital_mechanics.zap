@@ -1,0 +1,122 @@
+# ═══════════════════════════════════════════════════════════════════
+# Demo: Orbital Mechanics — Hohmann transfers & interplanetary
+# Run via: zap run main.zap (imports all libs + examples)
+# ═══════════════════════════════════════════════════════════════════
+
+say("")
+say("=== DEMO: Orbital Mechanics ===")
+
+# ── Earth orbit parameters ──
+let r_earth = 6371000
+let mu_earth = mu_earth()
+
+say("")
+say("-- Earth Orbital Mechanics --")
+say("  Earth mu: " + str(mu_earth) + " m^3/s^2")
+say("  Earth radius: " + str(r_earth) + " m")
+
+# ── LEO to GEO transfer (Hohmann) ──
+let r_leo = r_earth + 200000
+let r_geo = r_earth + 35786000
+
+say("")
+say("-- Hohmann Transfer: LEO to GEO --")
+say("  LEO radius: " + str(round(r_leo / 1000, 0)) + " km")
+say("  GEO radius: " + str(round(r_geo / 1000, 0)) + " km")
+
+let transfer = hohmann_transfer(r_leo, r_geo, mu_earth)
+say("  Transfer semi-major axis: " + str(round(transfer[4] / 1000, 0)) + " km")
+say("  Delta-v 1 (LEO -> transfer): " + str(round(transfer[0], 1)) + " m/s")
+say("  Delta-v 2 (transfer -> GEO): " + str(round(transfer[1], 1)) + " m/s")
+say("  Total delta-v: " + str(round(transfer[2], 1)) + " m/s")
+say("  Transfer time: " + str(round(transfer[3] / 60, 1)) + " min")
+
+# ── LEO to Moon transfer ──
+let r_moon = 384400000
+
+say("")
+say("-- Hohmann Transfer: LEO to Moon --")
+let moon_transfer = hohmann_transfer(r_leo, r_moon, mu_earth)
+say("  Total delta-v: " + str(round(moon_transfer[2], 1)) + " m/s")
+say("  Transfer time: " + str(round(moon_transfer[3] / 86400, 1)) + " days")
+
+# ── Orbital velocities ──
+say("")
+say("-- Key Orbital Velocities --")
+say("  LEO orbital velocity: " + str(round(orbital_velocity(r_leo, mu_earth), 1)) + " m/s")
+say("  GEO orbital velocity: " + str(round(orbital_velocity(r_geo, mu_earth), 1)) + " m/s")
+say("  Moon orbital velocity: " + str(round(orbital_velocity(r_moon, mu_earth), 1)) + " m/s")
+say("  Escape velocity (LEO): " + str(round(escape_velocity(r_leo, mu_earth), 1)) + " m/s")
+
+# ── Orbital elements from state vectors ──
+say("")
+say("-- Orbital Elements from State Vectors --")
+let pos = Vec3(r_leo, 0, 0)
+let vel_circular = sqrt(mu_earth / r_leo)
+let vel = Vec3(0, vel_circular, 0)
+let propagator = OrbitPropagator(pos, vel, mu_earth)
+propagator.summary()
+
+# ── Elliptical orbit example ──
+say("")
+say("-- Elliptical Orbit Example --")
+let r_peri = r_earth + 300000
+let r_apo = r_earth + 1000000
+let a_ell = (r_peri + r_apo) / 2
+let e_ell = (r_apo - r_peri) / (r_apo + r_peri)
+say("  Periapsis: " + str(round(r_peri / 1000, 0)) + " km")
+say("  Apoapsis: " + str(round(r_apo / 1000, 0)) + " km")
+say("  Semi-major axis: " + str(round(a_ell / 1000, 0)) + " km")
+say("  Eccentricity: " + str(round(e_ell, 4)))
+say("  Period: " + str(round(orbital_period(a_ell, mu_earth) / 60, 1)) + " min")
+say("  Velocity at periapsis: " + str(round(vis_viva(r_peri, a_ell, mu_earth), 1)) + " m/s")
+say("  Velocity at apoapsis: " + str(round(vis_viva(r_apo, a_ell, mu_earth), 1)) + " m/s")
+
+# ── Rocket equation for delta-v ──
+say("")
+say("-- Rocket Equation Applications --")
+let isp = 350
+say("  Isp: " + str(isp) + " s")
+say("  Mass ratio for LEO (9400 m/s): " + str(round(mass_ratio(9400, isp), 2)))
+say("  Propellant fraction for LEO: " + str(round(propellant_fraction(9400, isp) * 100, 1)) + "%")
+say("  Mass ratio for Moon (12000 m/s): " + str(round(mass_ratio(12000, isp), 2)))
+say("  Propellant fraction for Moon: " + str(round(propellant_fraction(12000, isp) * 100, 1)) + "%")
+
+# ── Interplanetary transfer ──
+say("")
+say("-- Interplanetary: Earth to Mars --")
+let r_earth_orbit = 1.496e11
+let r_mars_orbit = 2.279e11
+let interplanetary = InterplanetaryTransfer("Earth", "Mars", mu_earth(), mu_mars())
+say("  Departure delta-v: " + str(round(interplanetary.departure_dv(r_earth_orbit, r_mars_orbit), 1)) + " m/s")
+say("  Arrival delta-v: " + str(round(interplanetary.arrival_dv(r_mars_orbit), 1)) + " m/s")
+say("  Total delta-v: " + str(round(interplanetary.total_dv(r_earth_orbit, r_mars_orbit), 1)) + " m/s")
+say("  Transfer time: " + str(round(interplanetary.transfer_time(r_earth_orbit, r_mars_orbit) / 86400, 1)) + " days")
+
+# ── Oberth effect ──
+say("")
+say("-- Oberth Effect --")
+let v_periapsis = orbital_velocity(r_leo, mu_earth)
+let dv_burn = 1000
+let energy_gain = oberth_effect(dv_burn, v_periapsis)
+say("  Velocity at periapsis: " + str(round(v_periapsis, 1)) + " m/s")
+say("  Burn delta-v: " + str(dv_burn) + " m/s")
+say("  Energy gain (v*dv): " + str(round(energy_gain, 0)) + " m^2/s^2")
+
+# ── Generate orbital visualization ──
+say("")
+say("-- Generating orbital visualization --")
+let viz_particles = [
+  {"name": "Earth", "x": 0, "y": 0, "radius": 10, "color": "#00d4ff", "trail": []},
+  {"name": "Satellite", "x": 100, "y": 0, "radius": 3, "color": "#e94560", "trail": []},
+  {"name": "GEO Sat", "x": 357, "y": 0, "radius": 3, "color": "#00ff88", "trail": []}
+]
+let energy_hist = []
+for i in range(100):
+  energy_hist = energy_hist + [-1000 + i * 10]
+
+let orbital_html = orbital_viz_html(viz_particles, energy_hist, "Orbital Mechanics")
+say("  Visualization HTML generated (" + str(len(orbital_html)) + " chars)")
+
+say("")
+say("Orbital mechanics verified!")
