@@ -13,6 +13,7 @@ import "lib/particle3d.zap"
 import "lib/forces.zap"
 import "lib/collision.zap"
 import "lib/world.zap"
+import "lib/world3d.zap"
 
 # ── Advanced Physics ──
 import "lib/em.zap"
@@ -60,6 +61,7 @@ import "examples/demo_kinetics.zap"
 import "examples/demo_rocket.zap"
 import "examples/demo_flight.zap"
 import "examples/demo_orbital_mechanics.zap"
+import "examples/demo_orbital3d.zap"
 
 say("")
 say("==============================================")

@@ -41,3 +41,42 @@ fn coulomb_force(a, b, k_const)
 
 fn damping_force(vel, coeff)
   vel.scale(-coeff * vel.length())
+
+# ── 3D Force Laws ──
+# 3D Gravity with softening
+fn gravity3d(a, b, g_const)
+  let diff = b.pos.sub(a.pos)
+  let dlen = diff.length()
+  let softening = 5.0
+  let dist_sq = dlen * dlen + softening * softening
+  let dist = sqrt(dist_sq)
+  let strength = g_const * a.mass * b.mass / dist_sq
+  let dir = diff.normalize()
+  dir.scale(strength)
+
+# 3D Gravitational potential energy
+fn gravity3d_potential(a, b, g_const)
+  let diff = b.pos.sub(a.pos)
+  let dlen = diff.length()
+  let softening = 5.0
+  let dist = sqrt(dlen * dlen + softening * softening)
+  -g_const * a.mass * b.mass / dist
+
+# 3D Spring force
+fn spring_force3d(a, b, k, rest_len)
+  let diff = b.pos.sub(a.pos)
+  let dist = diff.length()
+  let stretch = dist - rest_len
+  let dir = diff.normalize()
+  dir.scale(k * stretch)
+
+# 3D Coulomb force
+fn coulomb_force3d(a, b, k_const)
+  let diff = b.pos.sub(a.pos)
+  let dlen = diff.length()
+  let dist = dlen
+  if dlen < 0.1:
+    dist = 0.1
+  let strength = k_const * a.charge * b.charge / (dist * dist)
+  let dir = diff.normalize()
+  dir.scale(strength)
