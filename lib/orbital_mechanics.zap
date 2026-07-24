@@ -176,4 +176,141 @@ class InterplanetaryTransfer:
     say("=== INTERPLANETARY TRANSFER ===")
     say("  From: " + self.origin)
     say("  To: " + self.destination)
+    say("  Transfer time: " + str(round(self.transfer_time(1.496e11, 2.279e11) / 86400, 1)) + " days")
     say("")
+
+# ── Lambert Solver ──
+# Solves Lambert's problem: find orbit connecting r1 -> r2 in time dt
+# Returns: [dv1, dv2, a, e, theta1, theta2] or nil if no solution
+fn lambert_solver(r1, r2, dt, mu, prograde)
+  let r1_mag = r1.length()
+  let r2_mag = r2.length()
+  let cos_dtheta = r1.dot(r2) / (r1_mag * r2_mag)
+  if cos_dtheta > 1:
+    cos_dtheta = 1
+  if cos_dtheta < -1:
+    cos_dtheta = -1
+  let dtheta = acos(cos_dtheta)
+  if not prograde:
+    dtheta = 2 * 3.14159265 - dtheta
+
+  let c = sqrt(r1_mag * r1_mag + r2_mag * r2_mag - 2 * r1_mag * r2_mag * cos_dtheta)
+  let s = (r1_mag + r2_mag + c) / 2
+
+  # Initial guess for semi-major axis using minimum energy orbit
+  let a_min = s / 2
+  let n = sqrt(mu / (a_min * a_min * a_min))
+  let t_min = 3.14159265 * sqrt(a_min * a_min * a_min / mu)
+
+  if dt < t_min:
+    ret nil
+
+  # Universal variable approach - iterate on x
+  let x = 0.0
+  let tolerance = 1e-10
+  let max_iter = 50
+
+  for iter in range(max_iter):
+    let z = x * x / a_min
+    let s_z, c_z = stumpff(z)
+
+    let y = r1_mag + r2_mag + (s_z - 1) / c_z * x * x
+    let sqrt_y = sqrt(y)
+
+    let t = (x**3 * s_z + sqrt_y * c_z * x) / sqrt(mu)
+    
+    if abs(t - dt) < tolerance:
+      break
+
+    # Newton-Raphson update
+    let dt_dx = (x**2 * c_z + y) / sqrt(mu)
+    x = x + (dt - t) / dt_dx
+
+  let a = 1 / (2 / r1_mag - x**2 / y)
+  let f = 1 - y / r1_mag
+  let g = dt - x**3 * s_z / sqrt(mu)
+  let fdot = sqrt(mu / (r1_mag * y)) * (z * s_z - 1) * x
+  let gdot = 1 - y / r2_mag
+
+  let v1 = r1.scale(1/g).sub(r2.scale(1/g)).scale(-1)  # Not exact but direction
+  # Proper v1 calculation:
+  let v1x = (r2.x - f * r1.x) / g
+  let v1y = (r2.y - f * r1.y) / g
+  let v1z = (r2.z - f * r1.z) / g
+  let v1_vec = Vec3(v1x, v1y, v1z)
+  
+  let dv1 = v1_vec.length() - sqrt(mu / r1_mag)
+  
+  # Arrival velocity
+  let v2x = (gdot * r2.x - r1.x) / g
+  let v2y = (gdot * r2.y - r1.y) / g
+  let v2z = (gdot * r2.z - r1.z) / g
+  let v2_vec = Vec3(v2x, v2y, v2z)
+  
+  let dv2 = v2_vec.length() - sqrt(mu / r2_mag)
+
+  [dv1, dv2, a, sqrt(1 - (c/a)**2), dtheta]
+
+# Stumpff functions for universal variable formulation
+fn stumpff(z)
+  if z > 1e-10:
+    let sqrt_z = sqrt(z)
+    [(1 - cos(sqrt_z)) / z, (sqrt_z - sin(sqrt_z)) / (sqrt_z * z)]
+  el:
+    if z < -1e-10:
+      let sqrt_nz = sqrt(-z)
+      [(cosh(sqrt_nz) - 1) / (-z), (sinh(sqrt_nz) - sqrt_nz) / (sqrt_nz * (-z) * sqrt_nz)]
+    el:
+      [0.5, 1/6.0]
+
+fn sinh(x) (exp(x) - exp(-x)) / 2
+fn cosh(x) (exp(x) + exp(-x)) / 2
+
+# Simple Lambert solver using universal variables (returns dv1, dv2, semi-major axis)
+fn lambert(r1_vec, r2_vec, dt, mu, prograde)
+  let r1 = r1_vec.length()
+  let r2 = r2_vec.length()
+  let cos_dnu = r1_vec.dot(r2_vec) / (r1 * r2)
+  if cos_dnu > 1:
+    cos_dnu = 1
+  if cos_dnu < -1:
+    cos_dnu = -1
+  let dnu = acos(cos_dnu)
+  if not prograde:
+    dnu = 2 * 3.14159265 - dnu
+
+  let chord = sqrt(r1*r1 + r2*r2 - 2*r1*r2*cos_dnu)
+  let s = (r1 + r2 + chord) / 2
+
+  # Minimum energy orbit
+  let a_min = s / 2
+  let t_min = 3.14159265 * sqrt(a_min * a_min * a_min / mu)
+  
+  if dt < t_min:
+    ret nil
+
+  # Use universal variable x
+  let x = sqrt(mu) * dt / a_min  # initial guess
+  
+  for i in range(50):
+    let z = x * x / a_min
+    let sz, cz = stumpff(z)
+    let y = r1 + r2 + (sz - 1)/cz * x * x
+    if y < 0:
+      y = 0
+    let t = (x*x*x*sz + sqrt(y)*cz*x) / sqrt(mu)
+    
+    if abs(t - dt) < 1e-8:
+      break
+      
+    let dtdx = (x*x*cz + y) / sqrt(mu)
+    x = x + (dt - t) / dtdx
+
+  let a = 1 / (2/r1 - x*x / (r1 + r2 + (sz - 1)/cz * x * x))
+  let alpha = 1 / a
+  let f = 1 - (x*x/cz) / r1
+  let g = dt - x*x*x*sz / sqrt(mu)
+  let v1_mag = sqrt(alpha * mu * (2/r1 - alpha))
+  let v2_mag = sqrt(alpha * mu * (2/r2 - alpha))
+  
+  [v1_mag - sqrt(mu/r1), v2_mag - sqrt(mu/r2), a]

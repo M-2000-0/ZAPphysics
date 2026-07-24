@@ -62,6 +62,7 @@ import "examples/demo_rocket.zap"
 import "examples/demo_flight.zap"
 import "examples/demo_orbital_mechanics.zap"
 import "examples/demo_orbital3d.zap"
+import "examples/demo_lambert.zap"
 
 say("")
 say("==============================================")
