@@ -27,6 +27,7 @@ import "lib/aero.zap"
 import "lib/orbital_mechanics.zap"
 import "lib/flight.zap"
 import "lib/porkchop.zap"
+import "lib/broadphase.zap"
 
 # ── Game Physics ──
 import "lib/game.zap"
@@ -65,6 +66,7 @@ import "examples/demo_orbital_mechanics.zap"
 import "examples/demo_orbital3d.zap"
 import "examples/demo_lambert.zap"
 import "examples/demo_porkchop.zap"
+import "examples/demo_broadphase.zap"
 
 say("")
 say("==============================================")
