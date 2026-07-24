@@ -1,0 +1,397 @@
+# ═══════════════════════════════════════════════════════════════════
+# ZapPhysics — Constraint: Constraint solver for rigid bodies
+# Distance, hinge, slider, and spring constraints
+# ═══════════════════════════════════════════════════════════════════
+
+import "vec2.zap"
+import "particle.zap"
+
+# ── Base Constraint ──
+class Constraint:
+  fn init(self, body_a, body_b)
+    self.body_a = body_a
+    self.body_b = body_b
+    self.enabled = true
+    self.stiffness = 1.0  # Baumgarte stabilization
+    self.damping = 0.1
+
+  fn solve(self, dt)
+    # Override in subclass
+    ret
+
+  fn get_anchor_a(self)
+    ret self.body_a.pos
+
+  fn get_anchor_b(self)
+    ret self.body_b.pos
+
+# ── Distance Constraint ──
+# Maintains fixed distance between two points
+class DistanceConstraint:
+  fn init(self, body_a, body_b, anchor_a, anchor_b, length)
+    self.body_a = body_a
+    self.body_b = body_b
+    self.anchor_a = anchor_a  # local anchor on body_a
+    self.anchor_b = anchor_b  # local anchor on body_b
+    self.length = length
+    self.enabled = true
+    self.stiffness = 0.5
+    self.damping = 0.1
+
+  fn get_world_anchor_a(self)
+    self.body_a.pos.add(self.anchor_a)
+
+  fn get_world_anchor_b(self)
+    self.body_b.pos.add(self.anchor_b)
+
+  fn solve(self, dt)
+    if not self.enabled:
+      ret
+    let anchor_a = self.get_world_anchor_a()
+    let anchor_b = self.get_world_anchor_b()
+    let delta = anchor_b.sub(anchor_a)
+    let current_length = delta.length()
+    if current_length < 1e-6:
+      ret
+    let diff = current_length - self.length
+    let direction = delta.normalize()
+    let correction = direction.scale(diff * self.stiffness)
+    let inv_mass_a = 1.0 / self.body_a.mass
+    let inv_mass_b = 1.0 / self.body_b.mass
+    let total_inv_mass = inv_mass_a + inv_mass_b
+    if total_inv_mass > 0:
+      self.body_a.pos = self.body_a.pos.add(correction.scale(inv_mass_a / total_inv_mass))
+      self.body_b.pos = self.body_b.pos.sub(correction.scale(inv_mass_b / total_inv_mass))
+    # Velocity correction (damping)
+    let vel_a = self.body_a.vel
+    let vel_b = self.body_b.vel
+    let rel_vel = vel_b.sub(vel_a)
+    let vel_along = rel_vel.dot(direction)
+    if vel_along < 0:
+      let impulse = direction.scale(vel_along * self.damping * dt / total_inv_mass)
+      self.body_a.vel = self.body_a.vel.add(impulse.scale(inv_mass_a))
+      self.body_b.vel = self.body_b.vel.sub(impulse.scale(inv_mass_b))
+
+  fn repr(self)
+    "DistanceConstraint(len=" + str(round(self.length, 2)) + ")"
+
+# ── Spring Constraint ──
+# Distance constraint with spring behavior
+class SpringConstraint:
+  fn init(self, body_a, body_b, anchor_a, anchor_b, rest_length, stiffness, damping)
+    self.body_a = body_a
+    self.body_b = body_b
+    self.anchor_a = anchor_a
+    self.anchor_b = anchor_b
+    self.rest_length = rest_length
+    self.stiffness = stiffness
+    self.damping = damping
+    self.enabled = true
+
+  fn get_world_anchor_a(self)
+    self.body_a.pos.add(self.anchor_a)
+
+  fn get_world_anchor_b(self)
+    self.body_b.pos.add(self.anchor_b)
+
+  fn solve(self, dt)
+    if not self.enabled:
+      ret
+    let anchor_a = self.get_world_anchor_a()
+    let anchor_b = self.get_world_anchor_b()
+    let delta = anchor_b.sub(anchor_a)
+    let current_length = delta.length()
+    if current_length < 1e-6:
+      ret
+    let direction = delta.normalize()
+    let displacement = current_length - self.rest_length
+    let spring_force = self.stiffness * displacement
+    let vel_a = self.body_a.vel
+    let vel_b = self.body_b.vel
+    let rel_vel = vel_b.sub(vel_a)
+    let vel_along = rel_vel.dot(direction)
+    let damping_force = self.damping * vel_along
+    let total_force = (spring_force + damping_force) * dt
+    let inv_mass_a = 1.0 / self.body_a.mass
+    let inv_mass_b = 1.0 / self.body_b.mass
+    let total_inv_mass = inv_mass_a + inv_mass_b
+    if total_inv_mass > 0:
+      let impulse = direction.scale(total_force / total_inv_mass)
+      self.body_a.vel = self.body_a.vel.add(impulse.scale(inv_mass_a))
+      self.body_b.vel = self.body_b.vel.sub(impulse.scale(inv_mass_b))
+
+  fn repr(self)
+    "SpringConstraint(k=" + str(self.stiffness) + ", c=" + str(self.damping) + ")"
+
+# ── Hinge Constraint ──
+# Constrains two bodies to rotate around a common point
+class HingeConstraint:
+  fn init(self, body_a, body_b, anchor_a, anchor_b)
+    self.body_a = body_a
+    self.body_b = body_b
+    self.anchor_a = anchor_a
+    self.anchor_b = anchor_b
+    self.enabled = true
+    self.stiffness = 0.5
+
+  fn get_world_anchor_a(self)
+    self.body_a.pos.add(self.anchor_a)
+
+  fn get_world_anchor_b(self)
+    self.body_b.pos.add(self.anchor_b)
+
+  fn solve(self, dt)
+    if not self.enabled:
+      ret
+    let anchor_a = self.get_world_anchor_a()
+    let anchor_b = self.get_world_anchor_b()
+    let delta = anchor_b.sub(anchor_a)
+    let distance = delta.length()
+    if distance < 1e-6:
+      ret
+    let direction = delta.normalize()
+    let correction = direction.scale(distance * self.stiffness)
+    let inv_mass_a = 1.0 / self.body_a.mass
+    let inv_mass_b = 1.0 / self.body_b.mass
+    let total_inv_mass = inv_mass_a + inv_mass_b
+    if total_inv_mass > 0:
+      self.body_a.pos = self.body_a.pos.add(correction.scale(inv_mass_a / total_inv_mass))
+      self.body_b.pos = self.body_b.pos.sub(correction.scale(inv_mass_b / total_inv_mass))
+
+  fn repr(self)
+    "HingeConstraint()"
+
+# ── Slider Constraint ──
+# Constrains motion along a single axis
+class SliderConstraint:
+  fn init(self, body_a, body_b, axis, anchor_a, anchor_b, min_limit, max_limit)
+    self.body_a = body_a
+    self.body_b = body_b
+    self.axis = axis.normalize()
+    self.anchor_a = anchor_a
+    self.anchor_b = anchor_b
+    self.min_limit = min_limit
+    self.max_limit = max_limit
+    self.enabled = true
+    self.stiffness = 0.5
+
+  fn get_world_anchor_a(self)
+    self.body_a.pos.add(self.anchor_a)
+
+  fn get_world_anchor_b(self)
+    self.body_b.pos.add(self.anchor_b)
+
+  fn solve(self, dt)
+    if not self.enabled:
+      ret
+    let anchor_a = self.get_world_anchor_a()
+    let anchor_b = self.get_world_anchor_b()
+    let delta = anchor_b.sub(anchor_a)
+    # Project onto constraint axis
+    let proj = delta.dot(self.axis)
+    let perp = delta.sub(self.axis.scale(proj))
+    # Correct perpendicular drift
+    if perp.length() > 1e-6:
+      let perp_dir = perp.normalize()
+      let correction = perp_dir.scale(perp.length() * self.stiffness)
+      let inv_mass_a = 1.0 / self.body_a.mass
+      let inv_mass_b = 1.0 / self.body_b.mass
+      let total_inv_mass = inv_mass_a + inv_mass_b
+      if total_inv_mass > 0:
+        self.body_a.pos = self.body_a.pos.add(correction.scale(inv_mass_a / total_inv_mass))
+        self.body_b.pos = self.body_b.pos.sub(correction.scale(inv_mass_b / total_inv_mass))
+    # Enforce limits along axis
+    if proj < self.min_limit:
+      let correction = self.axis.scale(self.min_limit - proj)
+      let inv_mass_a = 1.0 / self.body_a.mass
+      let inv_mass_b = 1.0 / self.body_b.mass
+      let total_inv_mass = inv_mass_a + inv_mass_b
+      if total_inv_mass > 0:
+        self.body_a.pos = self.body_a.pos.add(correction.scale(inv_mass_a / total_inv_mass))
+        self.body_b.pos = self.body_b.pos.sub(correction.scale(inv_mass_b / total_inv_mass))
+    el:
+      if proj > self.max_limit:
+        let correction = self.axis.scale(proj - self.max_limit)
+        let inv_mass_a = 1.0 / self.body_a.mass
+        let inv_mass_b = 1.0 / self.body_b.mass
+        let total_inv_mass = inv_mass_a + inv_mass_b
+        if total_inv_mass > 0:
+          self.body_a.pos = self.body_a.pos.add(correction.scale(inv_mass_a / total_inv_mass))
+          self.body_b.pos = self.body_b.pos.sub(correction.scale(inv_mass_b / total_inv_mass))
+
+  fn repr(self)
+    "SliderConstraint(axis=" + str(round(self.axis.x, 2)) + "," + str(round(self.axis.y, 2)) + ")"
+
+# ── Constraint Solver ──
+# Solves all constraints iteratively
+class ConstraintSolver:
+  fn init(self)
+    self.constraints = []
+    self.iterations = 10
+
+  fn add(self, constraint)
+    self.constraints = self.constraints + [constraint]
+
+  fn remove(self, constraint)
+    let new_list = []
+    for c in self.constraints:
+      if c != constraint:
+        new_list = new_list + [c]
+    self.constraints = new_list
+
+  fn solve(self, dt)
+    for i in range(self.iterations):
+      for c in self.constraints:
+        c.solve(dt)
+
+# ── Ragdoll Demo ──
+class RagdollPart:
+  fn init(self, name, mass, pos, radius)
+    self.name = name
+    self.body = Particle(name, mass, pos, Vec2(0, 0))
+    self.body.radius = radius
+    self.joints = []
+
+  fn add_joint(self, other, length, stiffness, damping)
+    let joint = SpringConstraint(self.body, other.body, Vec2(0, 0), Vec2(0, 0), length, stiffness, damping)
+    self.joints = self.joints + [joint]
+    other.joints = other.joints + [joint]
+
+# ── Constraint Demo ──
+fn demo_constraints()
+  say("")
+  say("=== DEMO: Constraint System ===")
+
+  # Create world
+  let world = World()
+  world.integrator = "velocity_verlet"
+  world.g_const = 0
+
+  # Create chain of particles with distance constraints
+  let particles = []
+  let constraints = ConstraintSolver()
+  constraints.iterations = 20
+
+  for i in range(10):
+    let x = i * 2.0
+    let p = Particle("Link-" + str(i), 1.0, Vec2(x, 0), Vec2(0, 0))
+    p.radius = 0.5
+    world.add(p)
+    particles = particles + [p]
+
+  # Pin first particle
+  particles[0].mass = 999999  # effectively infinite mass
+
+  # Add distance constraints between adjacent particles
+  for i in range(9):
+    let c = DistanceConstraint(particles[i], particles[i+1], Vec2(0, 0), Vec2(0, 0), 2.0)
+    constraints.add(c)
+
+  say("  Created " + str(len(particles)) + " particles with " + str(len(constraints.constraints)) + " distance constraints")
+
+  # Simulate
+  let gravity = Vec2(0, -5)
+  for step in range(100):
+    # Apply gravity to all but first
+    for i in range(1, len(particles)):
+      particles[i].apply_force(gravity)
+
+    # Solve constraints
+    constraints.solve(0.02)
+
+    # Step physics
+    for p in particles:
+      p.step(0.02)
+
+  # Check chain integrity
+  let total_length = 0
+  for i in range(9):
+    let d = particles[i].pos.dist(particles[i+1].pos)
+    total_length = total_length + d
+  say("  Final chain length: " + str(round(total_length, 2)) + " (expected ~18)")
+  say("  First pos: (" + str(round(particles[0].pos.x, 2)) + "," + str(round(particles[0].pos.y, 2)) + ")")
+  say("  Last pos:  (" + str(round(particles[9].pos.x, 2)) + "," + str(round(particles[9].pos.y, 2)) + ")")
+
+  # Spring constraint demo
+  say("")
+  say("-- Spring Constraint Demo --")
+  let spring_world = World()
+  spring_world.integrator = "velocity_verlet"
+  let spring_solver = ConstraintSolver()
+  spring_solver.iterations = 10
+
+  let fixed = Particle("Fixed", 10000, Vec2(0, 10), Vec2(0, 0))
+  let mass = Particle("Mass", 1.0, Vec2(0, 5), Vec2(0, 0))
+  fixed.radius = 0.5
+  mass.radius = 0.5
+  spring_world.add(fixed)
+  spring_world.add(mass)
+
+  let spring = SpringConstraint(fixed, mass, Vec2(0, 0), Vec2(0, 0), 5.0, 50.0, 2.0)
+  spring_solver.add(spring)
+
+  for step in range(50):
+    spring_solver.solve(0.02)
+    fixed.step(0.02)
+    mass.step(0.02)
+
+  let dist = fixed.pos.dist(mass.pos)
+  say("  Spring length: " + str(round(dist, 2)) + " (rest=5.0)")
+  say("  Mass pos: (" + str(round(mass.pos.x, 2)) + "," + str(round(mass.pos.y, 2)) + ")")
+
+  # Hinge constraint demo
+  say("")
+  say("-- Hinge Constraint Demo --")
+  let hinge_world = World()
+  hinge_world.integrator = "velocity_verlet"
+  let hinge_solver = ConstraintSolver()
+  hinge_solver.iterations = 15
+
+  let body1 = Particle("Body1", 10, Vec2(-5, 0), Vec2(0, 0))
+  let body2 = Particle("Body2", 10, Vec2(5, 0), Vec2(0, 0))
+  body1.radius = 1
+  body2.radius = 1
+  hinge_world.add(body1)
+  hinge_world.add(body2)
+
+  let hinge = HingeConstraint(body1, body2, Vec2(0, 0), Vec2(0, 0))
+  hinge_solver.add(hinge)
+
+  for step in range(50):
+    body1.apply_force(Vec2(0, 100))
+    body2.apply_force(Vec2(0, -100))
+    hinge_solver.solve(0.02)
+    body1.step(0.02)
+    body2.step(0.02)
+
+  let d = body1.pos.dist(body2.pos)
+  say("  Hinge distance: " + str(round(d, 4)) + " (should be ~0)")
+
+  # Slider constraint demo
+  say("")
+  say("-- Slider Constraint Demo --")
+  let slider_world = World()
+  slider_world.integrator = "velocity_verlet"
+  let slider_solver = ConstraintSolver()
+  slider_solver.iterations = 10
+
+  let slider_base = Particle("Base", 1000, Vec2(0, 0), Vec2(0, 0))
+  let slider_block = Particle("Block", 1, Vec2(2, 0), Vec2(5, 0))
+  slider_base.radius = 0.5
+  slider_block.radius = 0.5
+  slider_world.add(slider_base)
+  slider_world.add(slider_block)
+
+  let slider = SliderConstraint(slider_base, slider_block, Vec2(1, 0), Vec2(0, 0), Vec2(0, 0), -3, 3)
+  slider_solver.add(slider)
+
+  for step in range(100):
+    slider_solver.solve(0.02)
+    slider_base.step(0.02)
+    slider_block.step(0.02)
+
+  let pos = slider_block.pos.x
+  say("  Block position: " + str(round(pos, 2)) + " (clamped to [-3, 3])")
+
+  say("")
+  say("Constraint system verified!")

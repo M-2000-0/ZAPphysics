@@ -51,6 +51,7 @@ ZAPphysics/
 │   ├── kinetics.zap               # Reaction rate equations & equilibrium
 │   ├── visual.zap                 # ASCII visualization (charts, heatmaps, fields)
 │   ├── visualize.zap              # HTML+Canvas visualization via built-in HTTP server
+│   ├── broadphase.zap             # Uniform Grid & Quadtree collision broadphase
 │   └── art.zap                    # Generative art particle systems
 │
 ├── examples/                      # Demo simulations
@@ -69,9 +70,12 @@ ZAPphysics/
 │   ├── demo_visual.zap            # ASCII visualization
 │   ├── demo_elements.zap          # Periodic table (118 elements)
 │   ├── demo_kinetics.zap          # Reaction kinetics
+│   ├── demo_broadphase.zap        # Uniform Grid & Quadtree collision detection
 │   ├── demo_rocket.zap            # Rocket design & flight simulation
 │   ├── demo_flight.zap            # Airplane design & flight dynamics
-│   └── demo_orbital_mechanics.zap # Hohmann transfers, interplanetary
+│   ├── demo_orbital3d.zap         # 3D orbital mechanics
+│   ├── demo_lambert.zap           # Lambert's problem solver
+│   └── demo_porkchop.zap          # Porkchop plot for launch windows
 │
 └── zapphysics.zap                 # Monolithic version (all-in-one)
 ```
@@ -96,6 +100,7 @@ ZAPphysics/
 | `lib/em.zap` | `Charge`, `coulomb_force()`, `electric_field()`, `lorentz_force()` | Coulomb's law, electric fields, Lorentz force |
 | `lib/sph.zap` | `FluidParticle`, `FluidWorld` | Smoothed Particle Hydrodynamics fluid simulation |
 | `lib/rigid.zap` | `RigidBody` | Rigid body rotation, torque, angular momentum, inertia |
+| `lib/broadphase.zap` | `UniformGrid`, `Quadtree` | Spatial partitioning for fast collision detection |
 
 ### Engineering Modules
 

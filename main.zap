@@ -28,6 +28,7 @@ import "lib/orbital_mechanics.zap"
 import "lib/flight.zap"
 import "lib/porkchop.zap"
 import "lib/broadphase.zap"
+import "lib/constraint.zap"
 
 # ── Game Physics ──
 import "lib/game.zap"
@@ -67,11 +68,12 @@ import "examples/demo_orbital3d.zap"
 import "examples/demo_lambert.zap"
 import "examples/demo_porkchop.zap"
 import "examples/demo_broadphase.zap"
+import "examples/demo_constraints.zap"
 
 say("")
 say("==============================================")
-say("  All 18 demos complete!")
-say("  ZapPhysics v4.0: physics + chemistry + engineering.")
-say("  New: Rocket design, Aerodynamics, Orbital mechanics,")
-say("       Flight dynamics, HTML+Canvas visualization.")
+say("  All 22 demos complete!")
+say("  ZapPhysics v4.0: physics + chemistry + engineering + aerospace.")
+say("  22 demos: N-body, collision, chemistry, EM, SPH, rigid body,")
+say("       structural, game, broadphase, rocket, aero, orbital, flight.")
 say("==============================================")
