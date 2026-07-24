@@ -2,7 +2,7 @@
 # ZapPhysics — Game: Game physics (platformer, top-down, ragdoll)
 # ═══════════════════════════════════════════════════════════════════
 
-import "lib/vec2.zap"
+import "vec2.zap"
 
 class AABB:
   fn init(self, x, y, w, h)

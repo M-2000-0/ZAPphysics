@@ -18,8 +18,8 @@ fn ascii_render_particles(particles, width, height, x_min, x_max, y_min, y_max)
     let py = 0
     if y_max > y_min:
       py = (p.pos.y - y_min) / (y_max - y_min) * (height - 1)
-    let ix = px
-    let iy = height - 1 - py
+    let ix = int(px)
+    let iy = int(height - 1 - py)
     if ix >= 0 and ix < width and iy >= 0 and iy < height:
       let row = grid[iy]
       let new_row = ""
