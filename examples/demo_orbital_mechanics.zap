@@ -103,20 +103,5 @@ say("  Velocity at periapsis: " + str(round(v_periapsis, 1)) + " m/s")
 say("  Burn delta-v: " + str(dv_burn) + " m/s")
 say("  Energy gain (v*dv): " + str(round(energy_gain, 0)) + " m^2/s^2")
 
-# ── Generate orbital visualization ──
-say("")
-say("-- Generating orbital visualization --")
-let viz_particles = [
-  {"name": "Earth", "x": 0, "y": 0, "radius": 10, "color": "#00d4ff", "trail": []},
-  {"name": "Satellite", "x": 100, "y": 0, "radius": 3, "color": "#e94560", "trail": []},
-  {"name": "GEO Sat", "x": 357, "y": 0, "radius": 3, "color": "#00ff88", "trail": []}
-]
-let energy_hist = []
-for i in range(100):
-  energy_hist = energy_hist + [-1000 + i * 10]
-
-let orbital_html = orbital_viz_html(viz_particles, energy_hist, "Orbital Mechanics")
-say("  Visualization HTML generated (" + str(len(orbital_html)) + " chars)")
-
 say("")
 say("Orbital mechanics verified!")

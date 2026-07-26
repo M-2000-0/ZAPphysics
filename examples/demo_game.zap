@@ -11,9 +11,9 @@ say("-- Platformer Physics --")
 
 let player = PlatformerBody("Hero", 10, 0, 32, 48)
 let ground_y = 400
-let platform1 = AABB(0, 300, 200, 20)
-let platform2 = AABB(250, 250, 150, 20)
-let wall = AABB(500, 0, 20, 400)
+let platform1 = GameAABB(0, 300, 200, 20)
+let platform2 = GameAABB(250, 250, 150, 20)
+let wall = GameAABB(500, 0, 20, 400)
 
 say("  Player: " + str(player))
 say("  Ground Y: " + str(ground_y))

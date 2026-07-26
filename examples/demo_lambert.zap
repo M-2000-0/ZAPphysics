@@ -3,8 +3,6 @@
 # Run via: zap run main.zap
 # ════════════════════════════════════════════════════════════════════
 
-import "orbital_mechanics.zap"
-
 say("")
 say("=== DEMO: Lambert Solver ===")
 

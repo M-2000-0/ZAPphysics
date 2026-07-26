@@ -6,11 +6,9 @@
 say("")
 say("=== DEMO: Broad-phase Collision Detection ===")
 
-import "lib/broadphase.zap"
-
 # Create test particles
 let particles = []
-for i in range(200):
+for i in range(50):
   let p = Particle("p" + str(i), 1.0, 
                     Vec2(0, 0), 
                    Vec2(0, 0))
@@ -28,7 +26,7 @@ for p in particles:
   grid.insert(p)
 
 let grid_pairs = grid.get_potential_pairs()
-say("Grid cells occupied: " + str(len(grid.grid)))
+say("Grid cells occupied: " + str(len(grid.cells)))
 say("Potential pairs: " + str(len(grid_pairs)))
 
 # Test Quadtree

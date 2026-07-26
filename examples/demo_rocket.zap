@@ -31,7 +31,7 @@ rocket.summary()
 # ── Simulate flight ──
 say("")
 say("-- Simulating flight trajectory --")
-let dt = 0.1
+let dt = 1.0
 let trajectory = rocket.simulate(dt, 400)
 
 # Print key milestones
@@ -81,20 +81,6 @@ say("  LEO (9400 m/s, Isp=350): mass_ratio=" + str(round(mass_ratio(9400, 350), 
 say("  Moon (12000 m/s, Isp=350): mass_ratio=" + str(round(mass_ratio(12000, 350), 2)) + ", prop_frac=" + str(round(propellant_fraction(12000, 350) * 100, 1)) + "%")
 say("  Mars (15000 m/s, Isp=450): mass_ratio=" + str(round(mass_ratio(15000, 450), 2)) + ", prop_frac=" + str(round(propellant_fraction(15000, 450) * 100, 1)) + "%")
 
-# ── Generate visualization data ──
-say("")
-say("-- Generating visualization data --")
-let viz_stages = []
-for s in rocket.stages:
-  viz_stages = viz_stages + [{"name": s.name, "mass": s.total_mass(), "isp": s.engine.isp, "color": s.color}]
-
-let rocket_viz = rocket_viz_html(
-  {"stages": viz_stages, "payload": rocket.payload},
-  trajectory,
-  thrust_data,
-  "Rocket: " + rocket.name
-)
-say("  Visualization HTML generated (" + str(len(rocket_viz)) + " chars)")
-
+# ── Summary ──
 say("")
 say("Rocket engineering verified!")

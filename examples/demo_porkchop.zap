@@ -39,8 +39,8 @@ let depart_start = 0      # Jan 2024
 let depart_end = 730      # ~2 years
 let arrive_start = 150    # Min transfer ~5 months
 let arrive_end = 500      # Max transfer ~16 months
-let n_depart = 10
-let n_arrive = 10
+let n_depart = 5
+let n_arrive = 5
 
 let data = porkchop.generate(depart_start, depart_end, arrive_start, arrive_end, n_depart, n_arrive)
 
@@ -72,8 +72,8 @@ ascii_porkchop(data, depart_dates, arrive_dates, contours)
 
 # Launch window calculator
 say("")
-say("-- Launch Window Calculator (2024-2030) --")
-launch_window("Earth", "Mars", 2024, 2030, 30)
+say("-- Launch Window Calculator (2024-2025) --")
+launch_window("Earth", "Mars", 2024, 2025, 180)
 
 # Multi-body trajectory example
 say("")

@@ -62,16 +62,6 @@ let airfoils = [naca_2412(), naca_0012(), clark_y(), wf_116()]
 for af in airfoils:
   say("  " + af.name + ": Cl_max=" + str(af.cl_max) + ", Cd0=" + str(af.cd0) + ", AR=" + str(af.ar) + ", stall=" + str(round(af.stall_angle(), 1)) + "deg")
 
-# ── Generate flight visualization ──
-say("")
-say("-- Generating flight visualization --")
-let flight_viz_data = []
-for d in flight_data:
-  flight_viz_data = flight_viz_data + [{"name": plane.name, "time": d["time"], "altitude": d["altitude"], "velocity": d["velocity"], "alpha": d["alpha"], "lift": d["lift"]}]
-
-let flight_html = flight_viz_html(flight_viz_data, "Flight: " + plane.name)
-say("  Visualization HTML generated (" + str(len(flight_html)) + " chars)")
-
 # ── Aircraft comparison ──
 say("")
 say("-- Aircraft Comparison --")

@@ -4,7 +4,7 @@
 
 import "vec2.zap"
 
-class AABB:
+class GameAABB:
   fn init(self, x, y, w, h)
     self.x = x
     self.y = y
@@ -51,9 +51,9 @@ class AABB:
     if self.y + self.h < other.y + other.h:
       ib = other.y + other.h
     if ir > ix and ib > iy:
-      AABB(ix, iy, ir - ix, ib - iy)
+      GameAABB(ix, iy, ir - ix, ib - iy)
     el:
-      AABB(0, 0, 0, 0)
+      GameAABB(0, 0, 0, 0)
 
   fn area(self)
     self.w * self.h
@@ -80,7 +80,7 @@ class PlatformerBody:
     self.air_control = 0.6
 
   fn aabb(self)
-    AABB(self.x, self.y, self.w, self.h)
+    GameAABB(self.x, self.y, self.w, self.h)
 
   fn move_left(self)
     let ctrl = self.air_control

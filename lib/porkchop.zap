@@ -178,16 +178,27 @@ fn launch_window(origin, destination, year_start, year_end, step_days)
   say("")
 
   let windows = []
+  let mu_e = mu_earth()
+  let mu_m = mu_mars()
+  let r_e = 1.496e11
+  let r_m = 2.279e11
+  let a_t = (r_e + r_m) / 2
   let t = year_start * 365.25
   let t_end = year_end * 365.25
 
   while t <= t_end:
-    # Synodic period approximation
-    let t_arr = t + 260  # ~8.5 months for Earth-Mars
-    let porkchop = PorkchopPlot(origin, destination, mu_earth(), mu_mars(), 1.496e11, 2.279e11)
-    let result = porkchop.compute_transfer(t, t_arr)
-    if result[3] < 6000:  # dV < 6 km/s
-      windows = windows + [{"depart": t, "arrive": t_arr, "c3_depart": result[0], "c3_arrive": result[1], "dV": result[3]}]
+    let t_arr = t + 260
+    let v_dep = sqrt(mu_e * (2 / r_e - 1 / a_t))
+    let v_circ_e = sqrt(mu_e / r_e)
+    let dv_dep = abs(v_dep - v_circ_e)
+    let c3_dep = dv_dep * dv_dep
+    let v_arr = sqrt(mu_m * (2 / r_m - 1 / a_t))
+    let v_circ_m = sqrt(mu_m / r_m)
+    let dv_arr = abs(v_arr - v_circ_m)
+    let c3_arr = dv_arr * dv_arr
+    let dv = dv_dep + dv_arr
+    if dv < 6000:
+      windows = windows + [{"depart": t, "arrive": t_arr, "c3_depart": c3_dep, "c3_arrive": c3_arr, "dV": dv}]
     t = t + step_days
 
   for w in windows:

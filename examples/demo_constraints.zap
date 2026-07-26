@@ -5,6 +5,4 @@
 
 say("")
 say("=== DEMO: Constraint System ===")
-
-import "constraint.zap"
 demo_constraints()
