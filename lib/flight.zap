@@ -88,6 +88,10 @@ class FlightVehicle:
   fn static_margin(self, ac_position, cg_position)
     ac_position - cg_position
 
+  fn stall_speed(self, altitude)
+    let rho = self.air_density(altitude)
+    sqrt(2 * self.weight() / (rho * self.s * self.airfoil.cl_max))
+
   fn air_density(self, altitude)
     let temp = 288.15 - 0.0065 * altitude
     let ratio = temp / 288.15

@@ -8,11 +8,11 @@ say("=== DEMO: Orbital Mechanics ===")
 
 # ── Earth orbit parameters ──
 let r_earth = 6371000
-let mu_earth = mu_earth()
+let earth_mu = mu_earth()
 
 say("")
 say("-- Earth Orbital Mechanics --")
-say("  Earth mu: " + str(mu_earth) + " m^3/s^2")
+say("  Earth mu: " + str(earth_mu) + " m^3/s^2")
 say("  Earth radius: " + str(r_earth) + " m")
 
 # ── LEO to GEO transfer (Hohmann) ──
@@ -24,7 +24,7 @@ say("-- Hohmann Transfer: LEO to GEO --")
 say("  LEO radius: " + str(round(r_leo / 1000, 0)) + " km")
 say("  GEO radius: " + str(round(r_geo / 1000, 0)) + " km")
 
-let transfer = hohmann_transfer(r_leo, r_geo, mu_earth)
+let transfer = hohmann_transfer(r_leo, r_geo, earth_mu)
 say("  Transfer semi-major axis: " + str(round(transfer[4] / 1000, 0)) + " km")
 say("  Delta-v 1 (LEO -> transfer): " + str(round(transfer[0], 1)) + " m/s")
 say("  Delta-v 2 (transfer -> GEO): " + str(round(transfer[1], 1)) + " m/s")
@@ -36,25 +36,25 @@ let r_moon = 384400000
 
 say("")
 say("-- Hohmann Transfer: LEO to Moon --")
-let moon_transfer = hohmann_transfer(r_leo, r_moon, mu_earth)
+let moon_transfer = hohmann_transfer(r_leo, r_moon, earth_mu)
 say("  Total delta-v: " + str(round(moon_transfer[2], 1)) + " m/s")
 say("  Transfer time: " + str(round(moon_transfer[3] / 86400, 1)) + " days")
 
 # ── Orbital velocities ──
 say("")
 say("-- Key Orbital Velocities --")
-say("  LEO orbital velocity: " + str(round(orbital_velocity(r_leo, mu_earth), 1)) + " m/s")
-say("  GEO orbital velocity: " + str(round(orbital_velocity(r_geo, mu_earth), 1)) + " m/s")
-say("  Moon orbital velocity: " + str(round(orbital_velocity(r_moon, mu_earth), 1)) + " m/s")
-say("  Escape velocity (LEO): " + str(round(escape_velocity(r_leo, mu_earth), 1)) + " m/s")
+say("  LEO orbital velocity: " + str(round(orbital_velocity(r_leo, earth_mu), 1)) + " m/s")
+say("  GEO orbital velocity: " + str(round(orbital_velocity(r_geo, earth_mu), 1)) + " m/s")
+say("  Moon orbital velocity: " + str(round(orbital_velocity(r_moon, earth_mu), 1)) + " m/s")
+say("  Escape velocity (LEO): " + str(round(escape_velocity(r_leo, earth_mu), 1)) + " m/s")
 
 # ── Orbital elements from state vectors ──
 say("")
 say("-- Orbital Elements from State Vectors --")
 let pos = Vec3(r_leo, 0, 0)
-let vel_circular = sqrt(mu_earth / r_leo)
+let vel_circular = sqrt(earth_mu / r_leo)
 let vel = Vec3(0, vel_circular, 0)
-let propagator = OrbitPropagator(pos, vel, mu_earth)
+let propagator = OrbitPropagator(pos, vel, earth_mu)
 propagator.summary()
 
 # ── Elliptical orbit example ──
@@ -68,9 +68,9 @@ say("  Periapsis: " + str(round(r_peri / 1000, 0)) + " km")
 say("  Apoapsis: " + str(round(r_apo / 1000, 0)) + " km")
 say("  Semi-major axis: " + str(round(a_ell / 1000, 0)) + " km")
 say("  Eccentricity: " + str(round(e_ell, 4)))
-say("  Period: " + str(round(orbital_period(a_ell, mu_earth) / 60, 1)) + " min")
-say("  Velocity at periapsis: " + str(round(vis_viva(r_peri, a_ell, mu_earth), 1)) + " m/s")
-say("  Velocity at apoapsis: " + str(round(vis_viva(r_apo, a_ell, mu_earth), 1)) + " m/s")
+say("  Period: " + str(round(orbital_period(a_ell, earth_mu) / 60, 1)) + " min")
+say("  Velocity at periapsis: " + str(round(vis_viva(r_peri, a_ell, earth_mu), 1)) + " m/s")
+say("  Velocity at apoapsis: " + str(round(vis_viva(r_apo, a_ell, earth_mu), 1)) + " m/s")
 
 # ── Rocket equation for delta-v ──
 say("")
@@ -96,7 +96,7 @@ say("  Transfer time: " + str(round(interplanetary.transfer_time(r_earth_orbit, 
 # ── Oberth effect ──
 say("")
 say("-- Oberth Effect --")
-let v_periapsis = orbital_velocity(r_leo, mu_earth)
+let v_periapsis = orbital_velocity(r_leo, earth_mu)
 let dv_burn = 1000
 let energy_gain = oberth_effect(dv_burn, v_periapsis)
 say("  Velocity at periapsis: " + str(round(v_periapsis, 1)) + " m/s")

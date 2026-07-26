@@ -7,8 +7,8 @@ say("")
 say("=== DEMO: Porkchop Plot Generator ===")
 
 # Earth-Mars transfer parameters
-let mu_earth = mu_earth()
-let mu_mars = mu_mars()
+let earth_mu = mu_earth()
+let mars_mu = mu_mars()
 let r_earth_orbit = 1.496e11  # 1 AU
 let r_mars_orbit = 2.279e11   # 1.52 AU
 
@@ -18,7 +18,7 @@ say("  Earth orbit radius: " + str(round(r_earth_orbit/1e9, 1)) + " Mkm")
 say("  Mars orbit radius: " + str(round(r_mars_orbit/1e9, 1)) + " Mkm")
 
 # Generate porkchop data
-let porkchop = PorkchopPlot("Earth", "Mars", mu_earth, mu_mars, r_earth_orbit, r_mars_orbit)
+let porkchop = PorkchopPlot("Earth", "Mars", earth_mu, mars_mu, r_earth_orbit, r_mars_orbit)
 
 say("")
 say("-- Single Transfer Analysis --")
@@ -46,7 +46,7 @@ let data = porkchop.generate(depart_start, depart_end, arrive_start, arrive_end,
 
 # Find optimal
 let optimal = porkchop.find_optimal(data)
-if optimal != nil:
+if optimal != none:
   say("")
   say("-- Optimal Launch Window --")
   say("  Depart index: " + str(optimal["depart_idx"]))

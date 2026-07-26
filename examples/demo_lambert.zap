@@ -1,13 +1,15 @@
 # ═══════════════════════════════════════════════════════════════════
 # Demo: Lambert Solver — Orbital targeting & rendezvous
 # Run via: zap run main.zap
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════════
+
+import "orbital_mechanics.zap"
 
 say("")
 say("=== DEMO: Lambert Solver ===")
 
 # Earth orbital parameters
-let mu_earth = mu_earth()
+let earth_mu = mu_earth()
 let r_earth = 6371000
 
 # LEO to GEO transfer
@@ -20,7 +22,7 @@ say("  r1 (LEO): " + str(round(r1/1000, 1)) + " km")
 say("  r2 (GEO): " + str(round(r2/1000, 1)) + " km")
 
 # Hohmann for comparison
-let hohmann = hohmann_transfer(r1, r2, mu_earth)
+let hohmann = hohmann_transfer(r1, r2, earth_mu)
 say("  Hohmann dV1: " + str(round(hohmann[0], 1)) + " m/s")
 say("  Hohmann dV2: " + str(round(hohmann[1], 1)) + " m/s")
 say("  Hohmann total dV: " + str(round(hohmann[2], 1)) + " m/s")
@@ -34,8 +36,10 @@ say("  " + "-" * 65)
 
 for t_hours in [3, 5, 8, 12, 18, 24]:
   let dt = t_hours * 3600
-  let lambert = lambert(r1, r2, dt, mu_earth, true)
-  if lambert != nil:
+  let r1_vec = Vec3(r1, 0, 0)
+  let r2_vec = Vec3(r2, 0, 0)
+  let lambert = lambert(r1_vec, r2_vec, dt, earth_mu, true)
+  if lambert != none:
     say("  " + str(t_hours) + "           | " + str(round(lambert[0], 1)) + "       | " + str(round(lambert[1], 1)) + "       | " + str(round(lambert[0]+lambert[1], 1)) + "      | " + str(round(lambert[2]/1000, 1)) + "   | " + str(round(lambert[3], 4)))
   el:
     say("  " + str(t_hours) + "           | No solution")
@@ -44,8 +48,8 @@ for t_hours in [3, 5, 8, 12, 18, 24]:
 say("")
 say("-- Rendezvous: Chaser catching target in 90 min --")
 let r_leo = r_earth + 400000  # 400 km ISS-like orbit
-let v_circ = sqrt(mu_earth / r_leo)
-let period = 2 * 3.14159265 * sqrt(r_leo * r_leo * r_leo / mu_earth)
+let v_circ = sqrt(earth_mu / r_leo)
+let period = 2 * 3.14159265 * sqrt(r_leo * r_leo * r_leo / earth_mu)
 
 # Target moves 90 degrees in 1/4 orbit
 let dt_rendezvous = period / 4  # ~90 minutes
@@ -54,13 +58,11 @@ let dt_rendezvous = period / 4  # ~90 minutes
 let r1_vec = Vec3(r_leo, 0, 0)
 let r2_vec = Vec3(0, r_leo, 0)
 
-let rendezvous = lambert(r1_vec, r2_vec, dt_rendezvous, mu_earth, true)
-if rendezvous != nil:
+let rendezvous = lambert(r1_vec, r2_vec, dt_rendezvous, earth_mu, true)
+if rendezvous != none:
   say("  Chaser dV1 (departure): " + str(round(rendezvous[0], 1)) + " m/s")
   say("  Chaser dV2 (arrival):   " + str(round(rendezvous[1], 1)) + " m/s")
   say("  Transfer orbit a: " + str(round(rendezvous[2]/1000, 1)) + " km")
-  say("  Transfer orbit e: " + str(round(rendezvous[3], 4)))
-  say("  Transfer angle: " + str(round(rendezvous[4] * 180 / 3.14159265, 1)) + " deg")
 el:
   say("  No solution found")
 

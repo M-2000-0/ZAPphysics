@@ -80,7 +80,7 @@ class Truss:
     for n in self.nodes:
       if n.id == id:
         ret n
-    ret nil
+    ret none
 
   fn total_force_x(self)
     let total = 0

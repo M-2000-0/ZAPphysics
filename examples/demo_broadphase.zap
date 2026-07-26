@@ -12,7 +12,7 @@ import "lib/broadphase.zap"
 let particles = []
 for i in range(200):
   let p = Particle("p" + str(i), 1.0, 
-                   Vec2(random(-50, 50), random(-50, 50)), 
+                    Vec2(0, 0), 
                    Vec2(0, 0))
   p.radius = 1.0
   particles = particles + [p]

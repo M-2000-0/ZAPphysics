@@ -43,6 +43,7 @@ import "lib/kinetics.zap"
 # ── Visualization & Art ──
 import "lib/visual.zap"
 import "lib/visualize.zap"
+import "lib/visualize_enhanced.zap"
 import "lib/art.zap"
 
 # ── Demos ──

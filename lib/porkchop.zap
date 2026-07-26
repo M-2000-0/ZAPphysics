@@ -64,7 +64,7 @@ class PorkchopPlot:
   # Find optimal launch window (minimum C3)
   fn find_optimal(self, data)
     let min_c3 = 999999
-    let best = nil
+    let best = none
     for i in range(len(data)):
       for j in range(len(data[i])):
         let c3_dep = data[i][j][0]
@@ -91,7 +91,7 @@ fn porkchop_lambert(origin_body, dest_body, mu_origin, mu_dest, r_origin, r_dest
         let pos1 = Vec3(r_origin * cos(theta_origin), r_origin * sin(theta_origin), 0)
         let pos2 = Vec3(r_dest * cos(theta_dest), r_dest * sin(theta_dest), 0)
         let lambert = lambert_universal(pos1, pos2, tof, mu_origin, 0)
-        if lambert != nil:
+        if lambert != none:
           let v1 = lambert[0]
           let v2 = lambert[1]
           let v_circ1 = sqrt(mu_origin / r_origin)
@@ -106,9 +106,9 @@ fn porkchop_lambert(origin_body, dest_body, mu_origin, mu_dest, r_origin, r_dest
           let c3_2 = dv2 * dv2
           row = row + [{"c3_depart": c3_1, "c3_arrive": c3_2, "tof": tof, "total_dv": dv1 + dv2, "v1": v1, "v2": v2}]
         el:
-          row = row + [nil]
+          row = row + [none]
       el:
-        row = row + [nil]
+        row = row + [none]
     results = results + [row]
   results
 
@@ -133,12 +133,8 @@ fn ascii_porkchop(data, depart_dates, arrive_dates, c3_contours)
     let line = str(int(depart_dates[i])) + " |"
     for j in range(n_cols):
       let cell = data[i][j]
-      if cell != nil:
-        let c3 = 0
-        if cell["total_c3"] != nil:
-          c3 = cell["total_c3"]
-        el:
-          c3 = cell["c3_depart"] + cell["c3_arrive"]
+      if cell != none:
+        let c3 = cell[0] + cell[1]
         let char = "."
         for k in range(len(c3_contours)):
           if c3 <= c3_contours[k]:

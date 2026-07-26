@@ -56,7 +56,7 @@ truss.add_member(Member("M78", n7, n8, E, A))
 truss.add_member(Member("M38", n3, n8, E, A))
 truss.add_member(Member("M84", n8, n4, E, A))
 
-truss.solve(80)
+truss.solve(20)
 truss.summary()
 
 say("")

@@ -23,52 +23,83 @@ class AABB:
          self.max_x - self.min_x + 2 * margin,
          self.max_y - self.min_y + 2 * margin)
 
-# ── Uniform Grid (Spatial Hash) ──
+# ── Uniform Grid (Fixed-size 2D array) ──
 class UniformGrid:
   fn init(self, cell_size, world_min_x, world_min_y, world_max_x, world_max_y)
     self.cell_size = cell_size
     self.world_min_x = world_min_x
     self.world_min_y = world_min_y
-    self.grid = {}  # spatial hash: (cx, cy) -> list of particles
+    self.nx = int((world_max_x - world_min_x) / cell_size) + 1
+    self.ny = int((world_max_y - world_min_y) / cell_size) + 1
+    self.cells = []
+    let n_total = self.nx * self.ny
+    for ci in range(n_total):
+      self.cells = self.cells + [[]]
+
+  fn cell_at(self, cx, cy)
+    self.cells[cx * self.ny + cy]
+
+  fn set_cell(self, cx, cy, val)
+    self.cells[cx * self.ny + cy] = val
 
   fn world_to_cell(self, x, y)
     let cx = int((x - self.world_min_x) / self.cell_size)
     let cy = int((y - self.world_min_y) / self.cell_size)
+    if cx < 0:
+      cx = 0
+    if cy < 0:
+      cy = 0
+    if cx >= self.nx:
+      cx = self.nx - 1
+    if cy >= self.ny:
+      cy = self.ny - 1
     [cx, cy]
 
   fn clear(self)
-    self.grid = {}
+    let n_total = self.nx * self.ny
+    for ci in range(n_total):
+      self.cells[ci] = []
 
   fn insert(self, particle)
     let pos = particle.pos
     let r = particle.radius
-    let [cx1, cy1] = self.world_to_cell(pos.x - r, pos.y - r)
-    let [cx2, cy2] = self.world_to_cell(pos.x + r, pos.y + r)
+    let c1 = self.world_to_cell(pos.x - r, pos.y - r)
+    let cx1 = c1[0]
+    let cy1 = c1[1]
+    let c2 = self.world_to_cell(pos.x + r, pos.y + r)
+    let cx2 = c2[0]
+    let cy2 = c2[1]
     for cx in range(cx1, cx2 + 1):
+      let base = cx * self.ny
       for cy in range(cy1, cy2 + 1):
-        let key = str(cx) + "," + str(cy)
-        let has_key = key in self.grid
-        if not has_key:
-          self.grid[key] = []
-        self.grid[key] = self.grid[key] + [particle]
+        let idx = base + cy
+        if len(self.cells[idx]) == 0:
+          self.cells[idx] = [particle]
+        el:
+          self.cells[idx] = self.cells[idx] + [particle]
 
   fn query(self, x, y, radius)
-    let [cx1, cy1] = self.world_to_cell(x - radius, y - radius)
-    let [cx2, cy2] = self.world_to_cell(x + radius, y + radius)
+    let q1 = self.world_to_cell(x - radius, y - radius)
+    let cx1 = q1[0]
+    let cy1 = q1[1]
+    let q2 = self.world_to_cell(x + radius, y + radius)
+    let cx2 = q2[0]
+    let cy2 = q2[1]
     let results = []
     for cx in range(cx1, cx2 + 1):
+      let base = cx * self.ny
       for cy in range(cy1, cy2 + 1):
-        let key = str(cx) + "," + str(cy)
-        let has_key = key in self.grid
-        if has_key:
-          for p in self.grid[key]:
+        let idx = base + cy
+        let cell = self.cells[idx]
+        if len(cell) > 0:
+          for p in cell:
             results = results + [p]
     results
 
   fn get_potential_pairs(self)
     let pairs = []
-    for key in self.grid:
-      let cell_particles = self.grid[key]
+    for ci in range(len(self.cells)):
+      let cell_particles = self.cells[ci]
       let n = len(cell_particles)
       for i in range(n):
         for j in range(i + 1, n):
@@ -82,10 +113,10 @@ class Quadtree:
     self.capacity = capacity
     self.particles = []
     self.divided = false
-    self.nw = nil
-    self.ne = nil
-    self.sw = nil
-    self.se = nil
+    self.nw = none
+    self.ne = none
+    self.sw = none
+    self.se = none
 
   fn subdivide(self)
     let x = self.boundary.min_x
@@ -170,7 +201,7 @@ class BroadPhase:
       if method == "quadtree":
         self.structure = Quadtree(world_bounds, 4)
       el:
-        self.structure = nil
+        self.structure = none
 
   fn update(self, particles)
     if self.method == "grid":
@@ -201,7 +232,7 @@ fn demo_broadphase()
   let particles = []
   for i in range(100):
     let p = Particle("p" + str(i), 1.0, 
-                     Vec2(random(-50, 50), random(-50, 50)), 
+                     Vec2(0, 0), 
                      Vec2(0, 0))
     p.radius = 1.0
     particles = particles + [p]

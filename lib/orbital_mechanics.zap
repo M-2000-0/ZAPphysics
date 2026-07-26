@@ -3,7 +3,45 @@
 # Hohmann transfers, orbital elements, interplanetary trajectories
 # ═══════════════════════════════════════════════════════════════════
 
-# ── Orbital Elements ──
+# ── Math utilities ──
+fn atan(x)
+  let pi2 = 1.57079632679
+  let one = 1
+  let abs_x = x
+  if x < 0:
+    abs_x = -x
+  if abs_x > one:
+    let inv = one / abs_x
+    let r = inv / (one + 0.28 * inv * inv)
+    if x > 0:
+      ret pi2 - r
+    el:
+      ret -pi2 + r
+  let r = abs_x / (one + 0.28 * abs_x * abs_x)
+  if x < 0:
+    ret -r
+  ret r
+
+fn atan2(y, x)
+  if x > 0:
+    ret atan(y / x)
+  el:
+    if x < 0 and y >= 0:
+      ret atan(y / x) + 3.14159265
+    el:
+      if x < 0 and y < 0:
+        ret atan(y / x) - 3.14159265
+      el:
+        if x == 0 and y > 0:
+          ret 3.14159265 / 2
+        el:
+          if x == 0 and y < 0:
+            ret -3.14159265 / 2
+          el:
+            ret 0
+
+fn acos(x)
+  atan2(sqrt(1 - x * x), x)
 class OrbitalElements:
   fn init(self, a, e, inc, raan, argp, nu)
     self.a = a
@@ -181,7 +219,7 @@ class InterplanetaryTransfer:
 
 # ── Lambert Solver ──
 # Solves Lambert's problem: find orbit connecting r1 -> r2 in time dt
-# Returns: [dv1, dv2, a, e, theta1, theta2] or nil if no solution
+# Returns: [dv1, dv2, a, e, theta1, theta2] or none if no solution
 fn lambert_solver(r1, r2, dt, mu, prograde)
   let r1_mag = r1.length()
   let r2_mag = r2.length()
@@ -203,7 +241,7 @@ fn lambert_solver(r1, r2, dt, mu, prograde)
   let t_min = 3.14159265 * sqrt(a_min * a_min * a_min / mu)
 
   if dt < t_min:
-    ret nil
+    ret none
 
   # Universal variable approach - iterate on x
   let x = 0.0
@@ -212,7 +250,9 @@ fn lambert_solver(r1, r2, dt, mu, prograde)
 
   for iter in range(max_iter):
     let z = x * x / a_min
-    let s_z, c_z = stumpff(z)
+    let st = stumpff(z)
+    let s_z = st[0]
+    let c_z = st[1]
 
     let y = r1_mag + r2_mag + (s_z - 1) / c_z * x * x
     let sqrt_y = sqrt(y)
@@ -282,35 +322,40 @@ fn lambert(r1_vec, r2_vec, dt, mu, prograde)
   let chord = sqrt(r1*r1 + r2*r2 - 2*r1*r2*cos_dnu)
   let s = (r1 + r2 + chord) / 2
 
-  # Minimum energy orbit
   let a_min = s / 2
   let t_min = 3.14159265 * sqrt(a_min * a_min * a_min / mu)
   
   if dt < t_min:
-    ret nil
+    ret none
 
-  # Use universal variable x
-  let x = sqrt(mu) * dt / a_min  # initial guess
+  let x = sqrt(mu) * dt / a_min
+  let converged = false
+  let sz = 0
+  let cz = 0
   
   for i in range(50):
     let z = x * x / a_min
-    let sz, cz = stumpff(z)
+    let st = stumpff(z)
+    sz = st[0]
+    cz = st[1]
     let y = r1 + r2 + (sz - 1)/cz * x * x
     if y < 0:
       y = 0
     let t = (x*x*x*sz + sqrt(y)*cz*x) / sqrt(mu)
     
-    if abs(t - dt) < 1e-8:
+    if abs(t - dt) < 1e-6:
+      converged = true
       break
       
     let dtdx = (x*x*cz + y) / sqrt(mu)
     x = x + (dt - t) / dtdx
 
-  let a = 1 / (2/r1 - x*x / (r1 + r2 + (sz - 1)/cz * x * x))
-  let alpha = 1 / a
-  let f = 1 - (x*x/cz) / r1
-  let g = dt - x*x*x*sz / sqrt(mu)
+  if not converged:
+    ret none
+
+  let a_val = 1 / (2/r1 - x*x / (r1 + r2 + (sz - 1)/cz * x * x))
+  let alpha = 1 / a_val
   let v1_mag = sqrt(alpha * mu * (2/r1 - alpha))
   let v2_mag = sqrt(alpha * mu * (2/r2 - alpha))
   
-  [v1_mag - sqrt(mu/r1), v2_mag - sqrt(mu/r2), a]
+  [v1_mag - sqrt(mu/r1), v2_mag - sqrt(mu/r2), a_val]
