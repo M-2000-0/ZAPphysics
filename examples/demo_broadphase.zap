@@ -1,7 +1,11 @@
 # ═══════════════════════════════════════════════════════════════════
 # Demo: Broad-phase Collision Detection — Uniform Grid & Quadtree
-# Run via: zap run main.zap
+# Run via: zap run main.zap or: zap run examples/demo_broadphase.zap
 # ═══════════════════════════════════════════════════════════════════
+
+import "../lib/vec2.zap"
+import "../lib/particle.zap"
+import "../lib/broadphase.zap"
 
 say("")
 say("=== DEMO: Broad-phase Collision Detection ===")

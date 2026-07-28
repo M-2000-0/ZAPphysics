@@ -1,7 +1,10 @@
 # ═══════════════════════════════════════════════════════════════════
 # Demo: Rocket Engineering — Multi-stage rocket design & simulation
-# Run via: zap run main.zap (imports all libs + examples)
+# Run via: zap run main.zap or: zap run examples/demo_rocket.zap
 # ═══════════════════════════════════════════════════════════════════
+
+import "../lib/rocket.zap"
+import "../lib/orbital_mechanics.zap"
 
 say("")
 say("=== DEMO: Rocket Engineering ===")

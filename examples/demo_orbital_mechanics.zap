@@ -1,7 +1,9 @@
 # ═══════════════════════════════════════════════════════════════════
 # Demo: Orbital Mechanics — Hohmann transfers & interplanetary
-# Run via: zap run main.zap (imports all libs + examples)
+# Run via: zap run main.zap or: zap run examples/demo_orbital_mechanics.zap
 # ═══════════════════════════════════════════════════════════════════
+
+import "../lib/orbital_mechanics.zap"
 
 say("")
 say("=== DEMO: Orbital Mechanics ===")

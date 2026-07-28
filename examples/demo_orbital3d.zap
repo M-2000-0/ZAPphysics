@@ -1,7 +1,11 @@
 # ═══════════════════════════════════════════════════════════════════
 # Demo: 3D Orbital Mechanics with Velocity Verlet
-# Run via: zap run main.zap
+# Run via: zap run main.zap or: zap run examples/demo_orbital3d.zap
 # ═══════════════════════════════════════════════════════════════════
+
+import "../lib/particle3d.zap"
+import "../lib/world3d.zap"
+import "../lib/visual.zap"
 
 say("")
 say("=== DEMO: 3D Orbital Mechanics (Velocity Verlet) ===")

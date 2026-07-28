@@ -1,7 +1,10 @@
 # ═══════════════════════════════════════════════════════════════════
-# Demo: Flight Dynamics — Airplane design & flight simulation
-# Run via: zap run main.zap (imports all libs + examples)
+# Demo: Flight Dynamics — Aircraft aerodynamics & performance
+# Run via: zap run main.zap or: zap run examples/demo_flight.zap
 # ═══════════════════════════════════════════════════════════════════
+
+import "../lib/aero.zap"
+import "../lib/flight.zap"
 
 say("")
 say("=== DEMO: Flight Dynamics ===")

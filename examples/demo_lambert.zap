@@ -1,7 +1,9 @@
 # ═══════════════════════════════════════════════════════════════════
 # Demo: Lambert Solver — Orbital targeting & rendezvous
-# Run via: zap run main.zap
+# Run via: zap run main.zap or: zap run examples/demo_lambert.zap
 # ════════════════════════════════════════════════════════════════════
+
+import "../lib/orbital_mechanics.zap"
 
 say("")
 say("=== DEMO: Lambert Solver ===")

@@ -1,7 +1,9 @@
 # ═══════════════════════════════════════════════════════════════════
 # Demo: Porkchop Plot Generator — Launch window analysis
-# Run via: zap run main.zap
+# Run via: zap run main.zap or: zap run examples/demo_porkchop.zap
 # ═══════════════════════════════════════════════════════════════════
+
+import "../lib/porkchop.zap"
 
 say("")
 say("=== DEMO: Porkchop Plot Generator ===")
