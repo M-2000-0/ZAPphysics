@@ -374,7 +374,7 @@ class CodeEditor(ctk.CTkFrame):
         # File info
         self.file_label = ctk.CTkLabel(
             toolbar,
-            text="Untitled.zap",
+            text="Untitled.zpx",
             font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
             text_color="#e6edf3"
         )
@@ -545,10 +545,10 @@ class CodeEditor(ctk.CTkFrame):
     def _update_modified_indicator(self):
         if self.modified:
             self.modified_indicator.configure(text="●")
-            self.file_label.configure(text=f"{self.current_file.name if self.current_file else 'Untitled.zap'} *")
+            self.file_label.configure(text=f"{self.current_file.name if self.current_file else 'Untitled.zpx'} *")
         else:
             self.modified_indicator.configure(text="")
-            self.file_label.configure(text=self.current_file.name if self.current_file else "Untitled.zap")
+            self.file_label.configure(text=self.current_file.name if self.current_file else "Untitled.zpx")
             
     def _update_status(self):
         pos = self.text.index(tk.INSERT)
@@ -572,8 +572,8 @@ class CodeEditor(ctk.CTkFrame):
     def open_file(self, path: Optional[Path] = None) -> bool:
         if path is None:
             path = filedialog.askopenfilename(
-                defaultextension=".zap",
-                filetypes=[("Zap files", "*.zap"), ("All files", "*.*")],
+                defaultextension=".zpx",
+                filetypes=[("ZPX files", "*.zpx"), ("All files", "*.*")],
                 initialdir=str(Path.cwd() / "examples")
             )
         if not path:
@@ -605,8 +605,8 @@ class CodeEditor(ctk.CTkFrame):
             
     def save_as(self) -> bool:
         path = filedialog.asksaveasfilename(
-            defaultextension=".zap",
-            filetypes=[("Zap files", "*.zap"), ("All files", "*.*")],
+            defaultextension=".zpx",
+            filetypes=[("ZPX files", "*.zpx"), ("All files", "*.*")],
             initialdir=str(Path.cwd() / "examples")
         )
         if path:

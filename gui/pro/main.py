@@ -39,27 +39,27 @@ sys.path.insert(0, str(ZAP_SRC))
 # ═══════════════════════════════════════════════════════════════════════════════════
 
 DEMOS = {
-    "orbital": ("Orbital Mechanics", "examples/demo_orbital.zap", "N-body gravity, Hohmann transfers"),
-    "orbital3d": ("3D Orbital (VV)", "examples/demo_orbital3d.zap", "3D velocity verlet integration"),
-    "lambert": ("Lambert Solver", "examples/demo_lambert.zap", "Orbital targeting & rendezvous"),
-    "porkchop": ("Porkchop Plot", "examples/demo_porkchop.zap", "Earth→Mars launch windows"),
-    "rocket": ("Rocket Engineering", "examples/demo_rocket.zap", "Multi-stage design & trajectory"),
-    "flight": ("Flight Dynamics", "examples/demo_flight.zap", "Aircraft aerodynamics & envelope"),
-    "structural": ("Structural Eng", "examples/demo_structural.zap", "Truss & beam analysis"),
-    "game": ("Game Physics", "examples/demo_game.zap", "Platformer, top-down, ragdoll"),
-    "collisions": ("Collisions", "examples/collisions.zap", "Elastic collision dynamics"),
-    "springs": ("Spring-Mass", "examples/springs.zap", "Oscillator systems"),
-    "chemistry": ("Chemistry Lab", "examples/chemistry.zap", "Molecules, reactions, thermo"),
-    "elements": ("Periodic Table", "examples/demo_elements.zap", "118 elements"),
-    "kinetics": ("Kinetics", "examples/demo_kinetics.zap", "Rate laws, equilibrium, enzymes"),
-    "em": ("Electromagnetics", "examples/demo_em.zap", "Coulomb, Lorentz, fields"),
-    "fluid": ("SPH Fluids", "examples/demo_fluid.zap", "Smoothed particle hydrodynamics"),
-    "rigid": ("Rigid Body", "examples/demo_rigid.zap", "Rotation, torque, inertia"),
-    "tensor": ("Tensor N-Body", "examples/tensor.zap", "Matrix force calculations"),
-    "visual": ("ASCII Viz", "examples/demo_visual.zap", "Charts, sparklines, heatmaps"),
-    "art": ("Generative Art", "examples/demo_art.zap", "Particle fountains, spirals"),
-    "broadphase": ("Broadphase", "examples/demo_broadphase.zap", "Grid & quadtree collision"),
-    "constraints": ("Constraints", "examples/demo_constraints.zap", "Distance, spring, hinge, slider"),
+    "orbital": ("Orbital Mechanics", "examples/demo_orbital.zpx", "N-body gravity, Hohmann transfers"),
+    "orbital3d": ("3D Orbital (VV)", "examples/demo_orbital3d.zpx", "3D velocity verlet integration"),
+    "lambert": ("Lambert Solver", "examples/demo_lambert.zpx", "Orbital targeting & rendezvous"),
+    "porkchop": ("Porkchop Plot", "examples/demo_porkchop.zpx", "Earth→Mars launch windows"),
+    "rocket": ("Rocket Engineering", "examples/demo_rocket.zpx", "Multi-stage design & trajectory"),
+    "flight": ("Flight Dynamics", "examples/demo_flight.zpx", "Aircraft aerodynamics & envelope"),
+    "structural": ("Structural Eng", "examples/demo_structural.zpx", "Truss & beam analysis"),
+    "game": ("Game Physics", "examples/demo_game.zpx", "Platformer, top-down, ragdoll"),
+    "collisions": ("Collisions", "examples/collisions.zpx", "Elastic collision dynamics"),
+    "springs": ("Spring-Mass", "examples/springs.zpx", "Oscillator systems"),
+    "chemistry": ("Chemistry Lab", "examples/chemistry.zpx", "Molecules, reactions, thermo"),
+    "elements": ("Periodic Table", "examples/demo_elements.zpx", "118 elements"),
+    "kinetics": ("Kinetics", "examples/demo_kinetics.zpx", "Rate laws, equilibrium, enzymes"),
+    "em": ("Electromagnetics", "examples/demo_em.zpx", "Coulomb, Lorentz, fields"),
+    "fluid": ("SPH Fluids", "examples/demo_fluid.zpx", "Smoothed particle hydrodynamics"),
+    "rigid": ("Rigid Body", "examples/demo_rigid.zpx", "Rotation, torque, inertia"),
+    "tensor": ("Tensor N-Body", "examples/tensor.zpx", "Matrix force calculations"),
+    "visual": ("ASCII Viz", "examples/demo_visual.zpx", "Charts, sparklines, heatmaps"),
+    "art": ("Generative Art", "examples/demo_art.zpx", "Particle fountains, spirals"),
+    "broadphase": ("Broadphase", "examples/demo_broadphase.zpx", "Grid & quadtree collision"),
+    "constraints": ("Constraints", "examples/demo_constraints.zpx", "Distance, spring, hinge, slider"),
 }
 
 
@@ -320,8 +320,8 @@ Happy simulating! 🚀
         
     def open_file(self):
         path = filedialog.askopenfilename(
-            defaultextension=".zap",
-            filetypes=[("Zap files", "*.zap"), ("All files", "*.*")],
+            defaultextension=".zpx",
+            filetypes=[("ZPX files", "*.zpx"), ("All files", "*.*")],
             initialdir=str(EXAMPLES_DIR)
         )
         if path:
@@ -366,7 +366,7 @@ Happy simulating! 🚀
         
         def run():
             import tempfile
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.zap', delete=False) as f:
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.zpx', delete=False) as f:
                 f.write(code)
                 temp_path = f.name
             
@@ -542,11 +542,11 @@ Happy simulating! 🚀
     def _run_all_demos(self):
         self.console.clear()
         self.console.write_system(">>> Running all 22 demos...\n\n")
-        main_file = ROOT / "main.zap"
+        main_file = ROOT / "main.zpx"
         if main_file.exists():
             self._run_file_async(str(main_file))
         else:
-            messagebox.showerror("Error", "main.zap not found in project root")
+            messagebox.showerror("Error", "main.zpx not found in project root")
             
     def _toggle_console(self):
         pass
