@@ -1,0 +1,33 @@
+{
+  "name": "ZapPhysics",
+  "version": "4.2.0",
+  "description": "Physics + Chemistry + Engineering + Aerospace Simulation Engine",
+  "author": "ZapPhysics Team",
+  "license": "MIT",
+  "repository": "https://github.com/M-2000-0/ZAPphysics",
+  "homepage": "https://github.com/M-2000-0/ZAPphysics",
+  "keywords": [
+    "physics",
+    "simulation",
+    "chemistry",
+    "engineering",
+    "aerospace",
+    "education"
+  ],
+  "main": "gui/pro/main.py",
+  "scripts": {
+    "start": "python -m gui.pro.main",
+    "dev": "python -m gui.pro.main --dev",
+    "build": "pyinstaller --onefile --windowed --icon=assets/icon.ico gui/pro/main.py",
+    "test": "python -m pytest tests/",
+    "lint": "ruff check ."
+  },
+  "dependencies": {
+    "customtkinter": ">=5.2.0",
+    "matplotlib": ">=3.7.0",
+    "numpy": ">=1.24.0",
+    "pyyaml": ">=6.0",
+    "watchdog": ">=3.0.0"
+  },
+  "python_requires": ">=3.10"
+}
