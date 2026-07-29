@@ -2,6 +2,8 @@
 # ZapPhysics — World: Simulation container and integrator
 # ═══════════════════════════════════════════════════════════════════
 
+import "vec2.zap"
+import "particle.zap"
 import "forces.zap"
 
 class World:

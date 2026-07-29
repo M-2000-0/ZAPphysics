@@ -3,6 +3,8 @@
 # Hohmann transfers, orbital elements, interplanetary trajectories
 # ═══════════════════════════════════════════════════════════════════
 
+import "vec3.zap"
+
 # ── Math utilities ──
 fn atan(x)
   let pi2 = 1.57079632679
@@ -189,26 +191,25 @@ class OrbitPropagator:
 
 # ── Interplanetary Transfer ──
 class InterplanetaryTransfer:
-  fn init(self, origin, destination, mu_origin, mu_dest)
+  fn init(self, origin, destination, mu_central)
     self.origin = origin
     self.destination = destination
-    self.mu_origin = mu_origin
-    self.mu_dest = mu_dest
+    self.mu_central = mu_central
 
   fn departure_dv(self, r_origin, r_dest)
-    let v_transfer = sqrt(self.mu_origin * (2 / r_origin - 2 / (r_origin + r_dest)))
-    abs(v_transfer - sqrt(self.mu_origin / r_origin))
+    let v_transfer = sqrt(self.mu_central * (2 / r_origin - 2 / (r_origin + r_dest)))
+    abs(v_transfer - sqrt(self.mu_central / r_origin))
 
-  fn arrival_dv(self, r_dest)
-    let v_capture = sqrt(self.mu_dest * (2 / r_dest - 2 / (r_dest + self.mu_origin)))
-    abs(v_capture - sqrt(self.mu_dest / r_dest))
+  fn arrival_dv(self, r_origin, r_dest)
+    let v_transfer = sqrt(self.mu_central * (2 / r_dest - 2 / (r_origin + r_dest)))
+    abs(v_transfer - sqrt(self.mu_central / r_dest))
 
   fn total_dv(self, r_origin, r_dest)
-    self.departure_dv(r_origin, r_dest) + self.arrival_dv(r_dest)
+    self.departure_dv(r_origin, r_dest) + self.arrival_dv(r_origin, r_dest)
 
   fn transfer_time(self, r_origin, r_dest)
     let a = (r_origin + r_dest) / 2
-    3.14159265 * sqrt(a * a * a / mu_sun())
+    3.14159265 * sqrt(a * a * a / self.mu_central)
 
   fn summary(self)
     say("=== INTERPLANETARY TRANSFER ===")
@@ -292,21 +293,23 @@ fn lambert_solver(r1, r2, dt, mu, prograde)
   [dv1, dv2, a, sqrt(1 - (c/a)**2), dtheta]
 
 # Stumpff functions for universal variable formulation
+# Returns [S(z), C(z)] in that order
 fn stumpff(z)
   if z > 1e-10:
     let sqrt_z = sqrt(z)
-    [(1 - cos(sqrt_z)) / z, (sqrt_z - sin(sqrt_z)) / (sqrt_z * z)]
+    [(sqrt_z - sin(sqrt_z)) / (sqrt_z * sqrt_z * sqrt_z), (1 - cos(sqrt_z)) / z]
   el:
     if z < -1e-10:
       let sqrt_nz = sqrt(-z)
-      [(cosh(sqrt_nz) - 1) / (-z), (sinh(sqrt_nz) - sqrt_nz) / (sqrt_nz * (-z) * sqrt_nz)]
+      let nz3 = sqrt_nz * sqrt_nz * sqrt_nz
+      [(sinh(sqrt_nz) - sqrt_nz) / nz3, (cosh(sqrt_nz) - 1) / (-z)]
     el:
-      [0.5, 1/6.0]
+      [1/6.0, 0.5]
 
 fn sinh(x) (exp(x) - exp(-x)) / 2
 fn cosh(x) (exp(x) + exp(-x)) / 2
 
-# Simple Lambert solver using universal variables (returns dv1, dv2, semi-major axis)
+# Lambert solver using universal variables (Curtis Algorithm 5.2)
 fn lambert(r1_vec, r2_vec, dt, mu, prograde)
   let r1 = r1_vec.length()
   let r2 = r2_vec.length()
@@ -321,41 +324,93 @@ fn lambert(r1_vec, r2_vec, dt, mu, prograde)
 
   let chord = sqrt(r1*r1 + r2*r2 - 2*r1*r2*cos_dnu)
   let s = (r1 + r2 + chord) / 2
-
   let a_min = s / 2
-  let t_min = 3.14159265 * sqrt(a_min * a_min * a_min / mu)
-  
-  if dt < t_min:
-    ret none
+  let A = sqrt(2 * r1 * r2) * cos(dnu / 2)
 
-  let x = sqrt(mu) * dt / a_min
+  let z_max = 35
+  let z0 = 0
+  let z1 = 1
+  let F0 = 0
+  let F1 = 0
+  let Sz = 0
+  let Cz = 0
+  let y = 0
   let converged = false
-  let sz = 0
-  let cz = 0
-  
-  for i in range(50):
-    let z = x * x / a_min
-    let st = stumpff(z)
-    sz = st[0]
-    cz = st[1]
-    let y = r1 + r2 + (sz - 1)/cz * x * x
+
+  for i in range(100):
+    let z_cur = z0
+    if i > 0:
+      z_cur = z1
+    let st = stumpff(z_cur)
+    Sz = st[0]
+    Cz = st[1]
+    if abs(Cz) < 1e-15:
+      Cz = 1e-15
+
+    y = r1 + r2 + A*(z_cur*Sz - 1)/Cz
     if y < 0:
       y = 0
-    let t = (x*x*x*sz + sqrt(y)*cz*x) / sqrt(mu)
-    
-    if abs(t - dt) < 1e-6:
+
+    let sqrt_y = sqrt(y)
+    let chi = sqrt(y / Cz)
+    let F_cur = chi*chi*chi*Sz + A*sqrt_y - sqrt(mu)*dt
+
+    if i == 0:
+      F0 = F_cur
+    el:
+      F1 = F_cur
+    if abs(F_cur) < 1e-8 * sqrt(mu) * dt:
       converged = true
       break
-      
-    let dtdx = (x*x*cz + y) / sqrt(mu)
-    x = x + (dt - t) / dtdx
+    if i >= 1:
+      let denom = F1 - F0
+      if abs(denom) < 1e-30:
+        break
+      let z_new = z1 - F1 * (z1 - z0) / denom
+      if z_new > z_max:
+        z_new = z_max
+      if z_new < -z_max:
+        z_new = -z_max
+      if z_new == z1:
+        break
+      z0 = z1
+      z1 = z_new
+      F0 = F1
+    el:
+      z0 = z_cur
+      z1 = z_max * 0.5
 
   if not converged:
     ret none
 
-  let a_val = 1 / (2/r1 - x*x / (r1 + r2 + (sz - 1)/cz * x * x))
-  let alpha = 1 / a_val
-  let v1_mag = sqrt(alpha * mu * (2/r1 - alpha))
-  let v2_mag = sqrt(alpha * mu * (2/r2 - alpha))
-  
-  [v1_mag - sqrt(mu/r1), v2_mag - sqrt(mu/r2), a_val]
+  let f = 1 - y/r1
+  let g = A * sqrt(y/mu)
+  let gdot = 1 - y/r2
+
+  if abs(g) < 1e-12:
+    ret none
+
+  let v1x = (r2_vec.x - f * r1_vec.x) / g
+  let v1y = (r2_vec.y - f * r1_vec.y) / g
+  let v1z = (r2_vec.z - f * r1_vec.z) / g
+  let v1_vec = Vec3(v1x, v1y, v1z)
+  let v1_mag = v1_vec.length()
+  let dv1 = v1_mag - sqrt(mu/r1)
+
+  let v2x = (gdot * r2_vec.x - r1_vec.x) / g
+  let v2y = (gdot * r2_vec.y - r1_vec.y) / g
+  let v2z = (gdot * r2_vec.z - r1_vec.z) / g
+  let v2_vec = Vec3(v2x, v2y, v2z)
+  let v2_mag = v2_vec.length()
+  let dv2 = v2_mag - sqrt(mu/r2)
+
+  let a_val = 1 / (2/r1 - v1_mag*v1_mag/mu)
+  let e_val = 0
+  if a_val > 0:
+    let h_vec = r1_vec.cross(v1_vec)
+    let h_mag = h_vec.length()
+    let e_sq = 1 - h_mag*h_mag/(mu*a_val)
+    if e_sq > 0:
+      e_val = sqrt(e_sq)
+
+  [dv1, dv2, a_val, e_val, dnu]

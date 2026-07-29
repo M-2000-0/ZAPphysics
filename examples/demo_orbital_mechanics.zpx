@@ -89,9 +89,9 @@ say("")
 say("-- Interplanetary: Earth to Mars --")
 let r_earth_orbit = 1.496e11
 let r_mars_orbit = 2.279e11
-let interplanetary = InterplanetaryTransfer("Earth", "Mars", mu_earth(), mu_mars())
+let interplanetary = InterplanetaryTransfer("Earth", "Mars", mu_sun())
 say("  Departure delta-v: " + str(round(interplanetary.departure_dv(r_earth_orbit, r_mars_orbit), 1)) + " m/s")
-say("  Arrival delta-v: " + str(round(interplanetary.arrival_dv(r_mars_orbit), 1)) + " m/s")
+say("  Arrival delta-v: " + str(round(interplanetary.arrival_dv(r_earth_orbit, r_mars_orbit), 1)) + " m/s")
 say("  Total delta-v: " + str(round(interplanetary.total_dv(r_earth_orbit, r_mars_orbit), 1)) + " m/s")
 say("  Transfer time: " + str(round(interplanetary.transfer_time(r_earth_orbit, r_mars_orbit) / 86400, 1)) + " days")
 

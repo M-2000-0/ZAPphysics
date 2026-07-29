@@ -10,11 +10,13 @@ import "../lib/broadphase.zap"
 say("")
 say("=== DEMO: Broad-phase Collision Detection ===")
 
-# Create test particles
+# Create test particles at random positions
 let particles = []
 for i in range(50):
+  let x = random() * 200 - 100
+  let y = random() * 200 - 100
   let p = Particle("p" + str(i), 1.0, 
-                    Vec2(0, 0), 
+                    Vec2(x, y), 
                    Vec2(0, 0))
   p.radius = 1.0
   particles = particles + [p]

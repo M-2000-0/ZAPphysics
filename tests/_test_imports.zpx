@@ -1,0 +1,7 @@
+import "lib/world.zap"
+say("world imported ok")
+import "lib/constraint.zap"
+say("constraint imported ok")
+import "lib/broadphase.zap"
+say("broadphase imported ok")
+say("ALL IMPORTS OK")

@@ -42,7 +42,7 @@ for v in [30, 50, 70, 90, 110, 130]:
 say("")
 say("-- Simulating flight (takeoff to landing) --")
 let dt = 0.1
-let flight_data = plane.simulate(50000, dt, 120, 0, 40, 5)
+let flight_data = plane.simulate(50000, dt, 120, 100, 40)
 
 # Print flight summary
 say("  Simulated " + str(len(flight_data)) + " data points")

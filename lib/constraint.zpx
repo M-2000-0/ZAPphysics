@@ -5,6 +5,7 @@
 
 import "vec2.zap"
 import "particle.zap"
+import "world.zap"
 
 # ── Base Constraint ──
 class Constraint:

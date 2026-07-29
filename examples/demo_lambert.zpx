@@ -34,10 +34,11 @@ say("-- Lambert Solutions for different transfer times --")
 say("  Time (hours) | dV1 (m/s) | dV2 (m/s) | Total dV | a (km) | e")
 say("  " + "-" * 65)
 
-for t_hours in [3, 5, 8, 12, 18, 24]:
+let deg60 = 60 * 3.14159265 / 180
+for t_hours in [3, 5, 8, 12, 18, 24, 48, 72]:
   let dt = t_hours * 3600
   let r1_vec = Vec3(r1, 0, 0)
-  let r2_vec = Vec3(r2, 0, 0)
+  let r2_vec = Vec3(r2 * cos(deg60), r2 * sin(deg60), 0)
   let lambert = lambert(r1_vec, r2_vec, dt, earth_mu, true)
   if lambert != none:
     say("  " + str(t_hours) + "           | " + str(round(lambert[0], 1)) + "       | " + str(round(lambert[1], 1)) + "       | " + str(round(lambert[0]+lambert[1], 1)) + "      | " + str(round(lambert[2]/1000, 1)) + "   | " + str(round(lambert[3], 4)))

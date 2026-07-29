@@ -10,11 +10,10 @@ import "visualize.zap"
 # Computes C3 (characteristic energy) for departure/arrival date pairs
 
 class PorkchopPlot:
-  fn init(self, origin, destination, mu_origin, mu_dest, r_origin, r_dest)
+  fn init(self, origin, destination, mu_central, r_origin, r_dest)
     self.origin = origin
     self.destination = destination
-    self.mu_origin = mu_origin
-    self.mu_dest = mu_dest
+    self.mu_central = mu_central
     self.r_origin = r_origin
     self.r_dest = r_dest
 
@@ -24,17 +23,17 @@ class PorkchopPlot:
     # Simplified: assume circular coplanar orbits
     # In reality, need full ephemeris
     let a_transfer = (self.r_origin + self.r_dest) / 2
-    let v_depart = sqrt(self.mu_origin * (2 / self.r_origin - 1 / a_transfer))
-    let v_circ_origin = sqrt(self.mu_origin / self.r_origin)
+    let v_depart = sqrt(self.mu_central * (2 / self.r_origin - 1 / a_transfer))
+    let v_circ_origin = sqrt(self.mu_central / self.r_origin)
     let dv_depart = abs(v_depart - v_circ_origin)
     let c3_depart = dv_depart * dv_depart
 
-    let v_arrive = sqrt(self.mu_dest * (2 / self.r_dest - 1 / a_transfer))
-    let v_circ_dest = sqrt(self.mu_dest / self.r_dest)
+    let v_arrive = sqrt(self.mu_central * (2 / self.r_dest - 1 / a_transfer))
+    let v_circ_dest = sqrt(self.mu_central / self.r_dest)
     let dv_arrive = abs(v_arrive - v_circ_dest)
     let c3_arrive = dv_arrive * dv_arrive
 
-    let transfer_time = 3.14159265 * sqrt(a_transfer * a_transfer * a_transfer / self.mu_origin)
+    let transfer_time = 3.14159265 * sqrt(a_transfer * a_transfer * a_transfer / self.mu_central)
     let total_dv = dv_depart + dv_arrive
 
     [c3_depart, c3_arrive, transfer_time, total_dv]
@@ -63,7 +62,7 @@ class PorkchopPlot:
 
   # Find optimal launch window (minimum C3)
   fn find_optimal(self, data)
-    let min_c3 = 999999
+    let min_c3 = 9999999999
     let best = none
     for i in range(len(data)):
       for j in range(len(data[i])):
@@ -78,33 +77,25 @@ class PorkchopPlot:
 # ── Lambert-based Porkchop (more accurate) ──
 # Uses actual Lambert solver for each date pair
 
-fn porkchop_lambert(origin_body, dest_body, mu_origin, mu_dest, r_origin, r_dest, depart_dates, arrive_dates)
+fn porkchop_lambert(origin_body, dest_body, mu_central, r_origin, r_dest, depart_dates, arrive_dates)
   let results = []
   for t_dep in depart_dates:
     let row = []
     for t_arr in arrive_dates:
       let tof = t_arr - t_dep
       if tof > 0:
-        # Compute positions at those times (simplified circular orbits)
         let theta_origin = 3.14159265 * 2 * t_dep / 365.25
         let theta_dest = 3.14159265 * 2 * t_arr / 365.25
         let pos1 = Vec3(r_origin * cos(theta_origin), r_origin * sin(theta_origin), 0)
         let pos2 = Vec3(r_dest * cos(theta_dest), r_dest * sin(theta_dest), 0)
-        let lambert = lambert_universal(pos1, pos2, tof, mu_origin, 0)
-        if lambert != none:
-          let v1 = lambert[0]
-          let v2 = lambert[1]
-          let v_circ1 = sqrt(mu_origin / r_origin)
-          let v_circ2 = sqrt(mu_dest / r_dest)
-          let dv1 = v1.length() - v_circ1
-          let dv2 = v_circ2 - v2.length()
-          if dv1 < 0:
-            dv1 = -dv1
-          if dv2 < 0:
-            dv2 = -dv2
+        let lres = lambert(pos1, pos2, tof * 86400, mu_central, 0)
+        if lres != none:
+          let dv1 = lres[0]
+          let dv2 = lres[1]
           let c3_1 = dv1 * dv1
           let c3_2 = dv2 * dv2
-          row = row + [{"c3_depart": c3_1, "c3_arrive": c3_2, "tof": tof, "total_dv": dv1 + dv2, "v1": v1, "v2": v2}]
+          let total_dv = abs(dv1) + abs(dv2)
+          row = row + [{"c3_depart": c3_1, "c3_arrive": c3_2, "tof": tof, "total_dv": total_dv}]
         el:
           row = row + [none]
       el:
@@ -178,8 +169,7 @@ fn launch_window(origin, destination, year_start, year_end, step_days)
   say("")
 
   let windows = []
-  let mu_e = mu_earth()
-  let mu_m = mu_mars()
+  let mu_s = mu_sun()
   let r_e = 1.496e11
   let r_m = 2.279e11
   let a_t = (r_e + r_m) / 2
@@ -188,12 +178,12 @@ fn launch_window(origin, destination, year_start, year_end, step_days)
 
   while t <= t_end:
     let t_arr = t + 260
-    let v_dep = sqrt(mu_e * (2 / r_e - 1 / a_t))
-    let v_circ_e = sqrt(mu_e / r_e)
+    let v_dep = sqrt(mu_s * (2 / r_e - 1 / a_t))
+    let v_circ_e = sqrt(mu_s / r_e)
     let dv_dep = abs(v_dep - v_circ_e)
     let c3_dep = dv_dep * dv_dep
-    let v_arr = sqrt(mu_m * (2 / r_m - 1 / a_t))
-    let v_circ_m = sqrt(mu_m / r_m)
+    let v_arr = sqrt(mu_s * (2 / r_m - 1 / a_t))
+    let v_circ_m = sqrt(mu_s / r_m)
     let dv_arr = abs(v_arr - v_circ_m)
     let c3_arr = dv_arr * dv_arr
     let dv = dv_dep + dv_arr

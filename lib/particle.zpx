@@ -2,6 +2,8 @@
 # ZapPhysics — Particle: Point-mass with force accumulation
 # ═══════════════════════════════════════════════════════════════════
 
+import "vec2.zap"
+
 class Particle:
   fn init(self, name, mass, pos, vel)
     self.name = name
